@@ -81,7 +81,14 @@ class FinanceServiceTest {
     when(salaryTypes.findById(1L)).thenReturn(Optional.of(type));
     when(settings.paymentRule()).thenReturn("FULL");
     when(settings.maxAdvanceMonths()).thenReturn(2);
-    when(payments.save(any(SalaryPayment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    // Como a base de dados: ao gravar, o pagamento ganha a data de processamento (@PrePersist).
+    when(payments.save(any(SalaryPayment.class))).thenAnswer(invocation -> {
+      SalaryPayment saved = invocation.getArgument(0);
+      if (saved.getProcessedAt() == null) {
+        saved.setProcessedAt(Instant.now());
+      }
+      return saved;
+    });
     when(registrations.save(any(SalaryRegistration.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
     when(payments.findAllByOrderByReferenceMonthDescIdDesc()).thenReturn(List.of());

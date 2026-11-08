@@ -120,7 +120,7 @@ class AssessmentServiceTest {
   }
 
   @Test
-  void newRecordRejectsCoursesWithoutTeachersAndWhenNoNewStudentsExist() {
+  void newRecordRejectsWhenThereAreNoNewStudentsAndCoursesWithoutTeachers() {
     when(sheets.findAllByCourseIdAndAcademicYearOrderByIdAsc(3L, Year.now().getValue()))
         .thenReturn(List.of(sheet));
     assertEquals(400, assertThrows(ResponseStatusException.class,
