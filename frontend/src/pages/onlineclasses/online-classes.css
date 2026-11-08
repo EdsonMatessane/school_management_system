@@ -1,0 +1,165 @@
+.online-classes-page {
+  width: 100%;
+}
+
+.online-class-platform-page {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.online-class-platform-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  flex: 1 1 auto;
+  border: 0;
+  background: var(--surface);
+}
+
+.online-class-platform-open.MuiIconButton-root {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  right: 10px;
+  background: var(--surface);
+  box-shadow: 0 1px 5px var(--shadow);
+}
+
+.online-class-platform-loading {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+}
+
+.cacoin-main-platform {
+  height: calc(100vh - 64px);
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+.online-classes-heading {
+  align-items: flex-end;
+}
+
+.online-classes-heading .cacoin-page-heading-actions {
+  justify-content: flex-end;
+}
+
+.online-classes-statistics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.online-classes-statistics .cacoin-task-dashboard-card {
+  min-height: 112px;
+  grid-template-rows: auto auto;
+}
+
+.online-classes-dashboard-section {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 6px 18px var(--shadow);
+}
+
+.online-classes-section-heading {
+  margin-bottom: 14px;
+  color: var(--primary);
+}
+
+.online-classes-section-heading h2 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.online-classes-tabs {
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.online-class-status-badge.scheduled {
+  background: #fff2d9;
+  color: #8a5700;
+}
+
+.online-class-status-badge.live {
+  background: #d9efff;
+  color: #155b91;
+}
+
+.online-class-status-badge.completed {
+  background: #e3f4e8;
+  color: #216e39;
+}
+
+.online-attendance-status-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.online-attendance-status-group {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.online-attendance-status-badge.present,
+.online-attendance-status-badge.paid,
+.online-attendance-status-badge.justified {
+  background: #e3f4e8;
+  color: #216e39;
+}
+
+.online-attendance-status-badge.absent,
+.online-attendance-status-badge.not-justified {
+  background: #fde8e7;
+  color: #b42318;
+}
+
+.online-attendance-status-badge.pending {
+  background: #fff2d9;
+  color: #8a5700;
+}
+
+.online-classes-dialog-grid {
+  padding-top: 12px;
+}
+
+.online-classes-dialog-grid > :first-child {
+  grid-column: 1 / -1;
+}
+
+.online-classes-grid-wide {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 900px) {
+  .online-classes-statistics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .online-classes-dashboard-section {
+    padding: 14px;
+  }
+
+  .online-classes-heading {
+    align-items: flex-start;
+  }
+
+  .online-classes-heading .cacoin-page-heading-actions {
+    justify-content: flex-start;
+  }
+
+}

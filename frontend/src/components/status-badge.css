@@ -1,0 +1,21 @@
+.cacoin-status-badge.rejected {
+  background: #fde8e7;
+  color: #a1281f;
+}
+
+.cacoin-status-badge.neutral {
+  background: #eceff3;
+  color: #4a5565;
+}
+
+.cacoin-status-table-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.cacoin-status-table-heading .cacoin-settings-section-heading {
+  margin-bottom: 0;
+}

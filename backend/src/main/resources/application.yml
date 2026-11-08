@@ -1,0 +1,45 @@
+spring:
+  datasource:
+    # Cada instalação (original ou repartição) aponta para a sua base de dados.
+    url: ${CACOIN_DB_URL:jdbc:postgresql://localhost:5432/cacoin_db}
+    username: ${CACOIN_DB_USER:postgres}
+    password: ${CACOIN_DB_PASSWORD:123456}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 55MB
+cacoin:
+  storage:
+    folder-root: ${CACOIN_FOLDER_ROOT:./data/cacoin-folders}
+    staff-root: ${CACOIN_STAFF_STORAGE_ROOT:./data/staff-documents}
+    request-root: ${CACOIN_REQUEST_STORAGE_ROOT:./data/student-requests}
+  auth:
+    secret: ${CACOIN_AUTH_SECRET:}
+    enforce: ${CACOIN_AUTH_ENFORCE:true}
+    token-hours: ${CACOIN_AUTH_TOKEN_HOURS:12}
+    # Sem CACOIN_AUTH_SECRET, o segredo é gerado e guardado neste ficheiro (as sessões sobrevivem a reinícios).
+    secret-file: ${CACOIN_AUTH_SECRET_FILE:./data/auth-secret.key}
+  cors:
+    # Origens do frontend autorizadas, separadas por vírgulas (ex.: https://escola.exemplo.mz).
+    allowed-origins: ${CACOIN_CORS_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
+  partitions:
+    # Palavra-passe para repartir o sistema e repor o acesso do administrador de uma repartição.
+    password: ${CACOIN_PARTITION_PASSWORD:2002}
+  mobile-money:
+    # live = operadores reais; simulated = só para desenvolvimento.
+    mode: ${CACOIN_MOBILE_MONEY_MODE:live}
+    # Tem de ser maior que o tempo que o cliente tem para dar o PIN (a M-Pesa espera até ~100 s).
+    timeout-seconds: ${CACOIN_MOBILE_MONEY_TIMEOUT:180}
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        same-site: lax
+  error:
+    include-message: always

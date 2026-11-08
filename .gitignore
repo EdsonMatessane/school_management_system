@@ -1,0 +1,25 @@
+# Dependências e resultados de compilação
+node_modules/
+frontend/dist/
+backend/target/
+
+# Dados de execução: ficheiros enviados, repartições, segredo de sessão
+backend/data/
+backend/partitions/
+*.log
+auth-secret.key
+
+# Segredos e ambiente local (o modelo sem valores é o .env.example)
+.env
+.env.*
+!.env.example
+
+# Pacotes e cópias
+*.zip
+
+# IDE e sistema operativo
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db

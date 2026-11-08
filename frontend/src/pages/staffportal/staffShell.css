@@ -1,0 +1,9 @@
+/* Páginas do sistema geral dentro da moldura do portal: ocupam toda a largura, alinhadas à esquerda. */
+.portal-app .portal-main .cacoin-course-page {
+  max-width: none;
+  margin: 0;
+}
+
+.portal-app .portal-main .portal-tabs {
+  flex-shrink: 0;
+}

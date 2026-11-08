@@ -1,0 +1,12 @@
+# Só a base de dados, para desenvolvimento local (a stack completa está em ../docker-compose.yml).
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: cacoin_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${CACOIN_DB_PASSWORD:-123456}
+    ports: ["5432:5432"]
+    volumes: ["cacoin_pg:/var/lib/postgresql/data"]
+volumes:
+  cacoin_pg:

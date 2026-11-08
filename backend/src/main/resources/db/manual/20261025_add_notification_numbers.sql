@@ -1,0 +1,7 @@
+ALTER TABLE staff_members
+    ADD COLUMN IF NOT EXISTS whatsapp_number VARCHAR(32),
+    ADD COLUMN IF NOT EXISTS sms_number VARCHAR(32);
+
+ALTER TABLE students
+    ADD COLUMN IF NOT EXISTS whatsapp_number VARCHAR(32),
+    ADD COLUMN IF NOT EXISTS sms_number VARCHAR(32);

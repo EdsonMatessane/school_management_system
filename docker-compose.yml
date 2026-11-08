@@ -1,0 +1,55 @@
+# Stack completa: base de dados + backend + frontend.
+#   cp .env.example .env   (e preencher CACOIN_DB_PASSWORD)
+#   docker compose up --build
+# Frontend: http://localhost:8081   API: http://localhost:8080/api
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: cacoin_db
+      POSTGRES_USER: ${CACOIN_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${CACOIN_DB_PASSWORD:?Defina CACOIN_DB_PASSWORD no ficheiro .env}
+    volumes:
+      - cacoin_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d cacoin_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      CACOIN_DB_URL: jdbc:postgresql://db:5432/cacoin_db
+      CACOIN_DB_USER: ${CACOIN_DB_USER:-postgres}
+      CACOIN_DB_PASSWORD: ${CACOIN_DB_PASSWORD}
+      CACOIN_AUTH_SECRET: ${CACOIN_AUTH_SECRET:-}
+      CACOIN_CORS_ORIGINS: ${CACOIN_CORS_ORIGINS:-http://localhost:8081}
+      CACOIN_PARTITION_PASSWORD: ${CACOIN_PARTITION_PASSWORD:-}
+    ports:
+      - "8080:8080"
+      # Cada repartição corre num backend próprio, a partir da porta 8100.
+      - "8100-8199:8100-8199"
+    volumes:
+      - cacoin_data:/app/data
+      - cacoin_partitions:/app/partitions
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080/api}
+    depends_on:
+      - backend
+    ports:
+      - "8081:80"
+    restart: unless-stopped
+
+volumes:
+  cacoin_pg:
+  cacoin_data:
+  cacoin_partitions:

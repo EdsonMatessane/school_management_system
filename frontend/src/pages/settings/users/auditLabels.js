@@ -1,0 +1,158 @@
+import { formatDate, formatDateTime } from '../../../utils/date';
+
+export const actionLabels = {
+  CREATE: 'Criou',
+  UPDATE: 'Editou',
+  DELETE: 'Apagou',
+  LOGIN: 'Iniciou sessão',
+};
+
+export const entityLabels = {
+  AssessmentGrade: 'Nota',
+  AssessmentSheet: 'Pauta de notas',
+  AssessmentSheetTeacher: 'Professor da pauta de notas',
+  AttendanceJustificationPayment: 'Pagamento de justificação de falta',
+  AttendanceNotification: 'Notificação de presença',
+  AttendanceRecord: 'Presença',
+  Category: 'Categoria',
+  Course: 'Curso',
+  Discipline: 'Disciplina',
+  EnrollmentFee: 'Taxa de inscrição',
+  ExamRegistration: 'Inscrição em exame',
+  ExamRegistrationPayment: 'Pagamento de exame',
+  ExamSettings: 'Definições de exames',
+  Expense: 'Despesa',
+  ExpenseCatalogItem: 'Item do catálogo de despesas',
+  FinanceBonusType: 'Tipo de bónus',
+  FinancePosition: 'Cargo',
+  FinanceSalaryType: 'Tipo de salário',
+  FinanceSettings: 'Definições de finanças',
+  Folder: 'Pasta',
+  Graduate: 'Formado',
+  GraduationRegistration: 'Inscrição na graduação',
+  GraduationRegistrationPayment: 'Pagamento de graduação',
+  GraduationRequirement: 'Requisito de graduação',
+  GraduationSettings: 'Definições de graduação',
+  Holiday: 'Feriado',
+  InternalExpense: 'Despesa interna',
+  InternalExpenseAudit: 'Auditoria de despesa interna',
+  InternalExpenseBudget: 'Orçamento de despesas',
+  InternalExpenseCategory: 'Categoria de despesa interna',
+  InternalExpensePayment: 'Pagamento de despesa interna',
+  InternalExpenseSettings: 'Definições de despesas internas',
+  InternalExpenseSupplier: 'Fornecedor',
+  LeaveRequest: 'Pedido de saída',
+  LeaveSettings: 'Definições de saídas',
+  Level: 'Nível',
+  ManualFee: 'Taxa de manual',
+  Modality: 'Modalidade',
+  Module: 'Módulo',
+  MonthlyFee: 'Mensalidade (curso)',
+  MobileMoneyBankAccount: 'Conta bancária',
+  MobileMoneyTransaction: 'Transacção Mobile Money',
+  MobileMoneyWalletSetting: 'Carteira Mobile Money',
+  NotificationMessage: 'Mensagem de notificação',
+  NotificationSettings: 'Definições de notificações',
+  OnlineAttendance: 'Presença em aula online',
+  OnlineAttendanceSettings: 'Definições de presenças online',
+  OnlineClassPlatformSetting: 'Plataforma de aulas online',
+  OnlineLesson: 'Aula online',
+  OnlineMaterial: 'Material de aula online',
+  PautaEntry: 'Pauta',
+  PautaSettings: 'Definições de pautas',
+  PaymentMethod: 'Método de pagamento',
+  PaymentPeriodSettings: 'Período de pagamento',
+  Purchase: 'Compra',
+  PurchaseReturn: 'Devolução de compra',
+  ReceiptNumber: 'Número de recibo',
+  SalaryPayment: 'Pagamento de salário',
+  SalaryRegistration: 'Registo de salário',
+  Sale: 'Venda',
+  StaffAttendanceNotification: 'Notificação de presença de funcionário',
+  StaffAttendancePayment: 'Pagamento de presença de funcionário',
+  StaffAttendanceRecord: 'Presença de funcionário',
+  StaffCourseAssignment: 'Curso do professor',
+  StaffDocument: 'Documento de funcionário',
+  StaffDocumentType: 'Tipo de documento',
+  StaffMember: 'Funcionário',
+  Student: 'Estudante',
+  StudentEnrollment: 'Inscrição do estudante',
+  StudentExam: 'Exame',
+  StudentExamGrade: 'Nota de exame',
+  StudentFeeCharge: 'Cobrança do estudante',
+  StudentFeePayment: 'Pagamento do estudante',
+  StudentRequest: 'Pedido do estudante',
+  StudentRequestAttachment: 'Anexo do pedido',
+  StudentRequestSettings: 'Definições de pedidos',
+  StudentRequestType: 'Tipo de pedido',
+  StudentTest: 'Teste',
+  StudentTestGrade: 'Nota de teste',
+  SuspensionRegistration: 'Trancamento',
+  SuspensionRegistrationPayment: 'Pagamento de trancamento',
+  SuspensionSettings: 'Definições de trancamento',
+  SystemSettings: 'Definições do sistema',
+  SystemStatus: 'Estado do sistema',
+  Task: 'Tarefa',
+  TaskChecklistItem: 'Item de checklist da tarefa',
+  TaskComment: 'Comentário da tarefa',
+  TestRegistration: 'Inscrição em teste',
+  TestRegistrationPayment: 'Pagamento de teste',
+  TestSettings: 'Definições de testes',
+  UniformOrder: 'Pedido de uniforme',
+  UniformOrderPayment: 'Pagamento de uniforme',
+  UniformSettings: 'Definições de uniformes',
+  UniformStock: 'Stock de uniformes',
+  UserAccount: 'Conta de usuário',
+  UserSettings: 'Definições de usuários',
+};
+
+export const fieldLabels = {
+  absences: 'Faltas', absent: 'Ausente', academicYear: 'Ano lectivo', accessEnd: 'Acesso até',
+  accessStart: 'Acesso de', accountName: 'Nome da conta', accountNumber: 'Número da conta',
+  active: 'Activo', address: 'Endereço', addressDistrict: 'Distrito (endereço)',
+  addressProvince: 'Província (endereço)', amount: 'Valor', approvalStatus: 'Estado de aprovação',
+  approvedAmount: 'Valor aprovado', archived: 'Arquivada', assigneeId: 'Responsável',
+  attendanceDate: 'Data da presença', baseAmount: 'Valor base', biNumber: 'BI',
+  birthDate: 'Data de nascimento', birthDistrict: 'Distrito de nascimento',
+  birthProvince: 'Província de nascimento', category: 'Categoria', code: 'Código',
+  completed: 'Concluído', component: 'Componente', content: 'Conteúdo', country: 'País',
+  course: 'Curso', date: 'Data', deliveryDate: 'Data de entrega', department: 'Departamento',
+  description: 'Descrição', details: 'Detalhes', dueAt: 'Prazo', dueDate: 'Data de vencimento',
+  email: 'Email', endAt: 'Fim', endDate: 'Data de fim', enrollmentDate: 'Data de inscrição',
+  exam1: 'Exame 1', exam2: 'Exame 2', expenseDate: 'Data da despesa', expiryDate: 'Data de validade',
+  fatherName: 'Nome do pai', fileName: 'Ficheiro', finalAverage: 'Média final', firstName: 'Nome',
+  frequency: 'Frequência', gender: 'Género', grade: 'Nota', institution: 'Instituição',
+  issueDate: 'Data de emissão', justificationDate: 'Data da justificação',
+  justificationFee: 'Taxa de justificação', justificationPaid: 'Justificação paga',
+  leaveDate: 'Data de saída', level: 'Nível', maxGrade: 'Nota máxima', message: 'Mensagem',
+  modality: 'Modalidade', module: 'Módulo', motherName: 'Nome da mãe', name: 'Nome',
+  notes: 'Notas', nuit: 'NUIT', observations: 'Observações', paid: 'Pago', paidAmount: 'Valor pago',
+  paymentDate: 'Data de pagamento', paymentMethod: 'Método de pagamento',
+  paymentStatus: 'Estado de pagamento', phone: 'Telefone', position: 'Cargo', priority: 'Prioridade',
+  reason: 'Razão', recurring: 'Recorrente', requestDate: 'Data do pedido', result: 'Resultado',
+  returnDate: 'Data de regresso', score: 'Nota', smsNumber: 'Número SMS', startAt: 'Início',
+  startDate: 'Data de início', status: 'Estado', student: 'Estudante', surname: 'Apelido',
+  teacher: 'Professor', title: 'Título', totalAmount: 'Valor total', type: 'Tipo',
+  whatsappNumber: 'Número WhatsApp',
+};
+
+const humanize = (field) => {
+  const text = String(field).replace(/([a-z0-9])([A-Z])/g, '$1 $2').toLowerCase();
+  return text.charAt(0).toUpperCase() + text.slice(1);
+};
+
+const isoDateTime = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/;
+const isoDate = /^\d{4}-\d{2}-\d{2}$/;
+
+const formatValue = (value) => {
+  if (value === null || value === undefined || value === '') return '';
+  if (value === 'true') return 'Sim';
+  if (value === 'false') return 'Não';
+  if (isoDate.test(value)) return formatDate(value);
+  if (isoDateTime.test(value)) return formatDateTime(value);
+  return value;
+};
+
+export const describeChanges = (changes) => (changes ?? []).map(
+  ({ field, from, to }) => `${fieldLabels[field] ?? humanize(field)}: "${formatValue(from)}" -> "${formatValue(to)}"`,
+);

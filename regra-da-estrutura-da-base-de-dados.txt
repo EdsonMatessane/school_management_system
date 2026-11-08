@@ -1,0 +1,204 @@
+REGRA DA ESTRUTURA DA BASE DE DADOS - PROJECTO SCHOOL (CACOIN)
+================================================================
+
+Este ficheiro deve ficar na raiz do projecto. Quem for mexer na base de dados (pessoa ou
+assistente de IA) deve ler isto primeiro e cumprir sempre.
+
+
+1. A REGRA
+----------
+Qualquer tabela nova (ou coluna nova) que tenha relacao com uma PESSOA do sistema
+(estudante, professor, RH ou outro staff) guarda APENAS o ID dessa pessoa.
+
+  - NUNCA se repete na tabela nova o nome, apelido, nome do pai/mae, telefone, email, BI, NUIT,
+    morada ou qualquer outro dado que ja existe na tabela da pessoa.
+  - Quando for preciso mostrar ou usar um desses dados (por exemplo nome e apelido), vai-se
+    busca-lo a tabela propria da pessoa, atraves do ID.
+
+Porque: os dados da pessoa existem num so sitio. Se o nome mudar, muda em todo o lado ao mesmo
+tempo, sem actualizar varias tabelas e sem nomes diferentes para a mesma pessoa.
+
+
+2. A QUE TABELA CADA ID PERTENCE
+--------------------------------
+  Pessoa                         Tabela            Coluna nas outras tabelas
+  -----------------------------  ----------------  ----------------------------------
+  Estudante                      students          student_id
+  Professor, RH e outro staff    staff_members     staff_id  (ver nota abaixo)
+
+Notas:
+  - Professores, RH e outro staff estao todos em staff_members (a coluna staff_type diz qual e).
+    Por omissao use staff_id. Se o papel for importante, o nome da coluna pode dize-lo
+    (teacher_id, hr_id), mas a ligacao e SEMPRE a staff_members(id).
+  - O "ID" e a chave primaria (coluna id, numero) gerada ao criar a pessoa. O codigo que se ve
+    no ecra (por exemplo CACOIN202601 ou o codigo do staff) e calculado a partir desse numero
+    e tambem NAO se guarda nas outras tabelas.
+  - Se nascer um novo tipo de pessoa com tabela propria, a regra e a mesma: <tipo>_id.
+
+
+3. EXEMPLOS
+-----------
+CERTO (so o ID):
+
+  CREATE TABLE exemplo_presencas (
+      id          BIGSERIAL PRIMARY KEY,
+      student_id  BIGINT NOT NULL REFERENCES students (id),
+      staff_id    BIGINT REFERENCES staff_members (id) ON DELETE SET NULL,
+      data        DATE NOT NULL
+  );
+
+ERRADO (repete dados da pessoa):
+
+  CREATE TABLE exemplo_presencas (
+      id             BIGSERIAL PRIMARY KEY,
+      student_name   VARCHAR(120),     -- NAO: o nome ja esta em students
+      student_phone  VARCHAR(32),      -- NAO
+      teacher        VARCHAR(120),     -- NAO: guardar so teacher_id / staff_id
+      data           DATE NOT NULL
+  );
+
+Mesma coisa para "quem criou", "responsavel", "autor", "aprovado por": e sempre um ID
+(created_by_id, assignee_id, author_id, approved_by_id), nunca um nome em texto.
+
+
+4. COMO IR BUSCAR OS DADOS DA PESSOA
+------------------------------------
+  - Em SQL: JOIN pelo ID.
+      SELECT p.data, concat_ws(' ', s.first_name, s.surname) AS aluno
+        FROM exemplo_presencas p JOIN students s ON s.id = p.student_id;
+  - No backend (Spring/JPA): a entidade guarda o ID (coluna Long) ou uma relacao @ManyToOne
+    para a entidade da pessoa. O nome e lido da tabela da pessoa ao montar a resposta, de
+    preferencia numa so consulta para a lista toda (findAllById), nunca uma consulta por linha.
+    Exemplo no projecto: tasks (TaskService.staffNames).
+  - Na API: a resposta PODE incluir o nome ja resolvido (campo apenas para mostrar, calculado no
+    momento), junto com o ID. O pedido de gravar recebe apenas o ID (assigneeId, studentId...).
+  - No frontend: para escolher uma pessoa usa-se uma lista (select) e envia-se o ID.
+  - Exportacoes (PDF, Excel, CSV, XML) e recibos: o nome e resolvido pelo ID na altura de gerar.
+
+
+5. COMO CUMPRIR AO CRIAR UMA TABELA NOVA (checklist)
+----------------------------------------------------
+  [ ] Cada ligacao a uma pessoa e uma coluna <tipo>_id com chave estrangeira para a tabela dela.
+  [ ] Nao existem colunas com nome, apelido, telefone, email, BI, NUIT, morada, etc. da pessoa.
+  [ ] Nao existem colunas de texto livre como "responsavel", "criado por", "autor" - so IDs.
+  [ ] Chave estrangeira com ON DELETE definido (SET NULL quando o campo e opcional; caso
+      contrario deixar a base impedir apagar quem ainda tem registos).
+  [ ] Ha um script em backend/src/main/resources/db/manual/ com a criacao da tabela.
+  [ ] A API resolve os nomes pelo ID; o pedido de gravacao so recebe IDs.
+
+Qualquer excepcao a esta regra tem de ser pedida e aprovada explicitamente pelo responsavel
+do projecto; nao se abre excepcao por conveniencia.
+
+
+6. ESTADO ACTUAL DO PROJECTO (verificado em 18/10/2026)
+-------------------------------------------------------
+Ja cumprem a regra (so IDs): student_enrollments (student_id, course_id), student_fee_charges
+(enrollment_id), student_fee_payments (charge_id), staff_course_assignments (staff_id, course_id),
+student_test_grades (student_id), test_registrations (student_id, course_id) e
+test_registration_payments (registration_id). test_settings guarda apenas definições de taxas e
+períodos, sem dados de pessoas.
+exam_registrations (student_id, course_id) e exam_registration_payments (registration_id) seguem
+o mesmo padrao; exam_settings guarda apenas definições de taxas e períodos.
+student_exam_grades (student_id) segue o mesmo padrao das notas de testes.
+Script: db/manual/20261018_create_student_exams.sql.
+uniform_orders (student_id, course_id) e uniform_order_payments (order_id) seguem o mesmo padrao;
+uniform_settings e uniform_stock guardam apenas a taxa e as quantidades por tamanho.
+Script: db/manual/20261019_create_uniforms.sql.
+graduation_registrations (student_id, course_id), graduation_registration_payments (registration_id)
+e graduates (student_id, course_id, registration_id) seguem o mesmo padrao; graduation_settings e
+graduation_requirements guardam apenas taxas, requisitos, periodo e dia da cerimonia.
+Script: db/manual/20261020_create_graduations.sql.
+suspension_registrations (student_id, course_id) e suspension_registration_payments (registration_id)
+seguem o mesmo padrao; suspension_settings guarda apenas a taxa de trancamento.
+attendance_records (student_id, course_id, teacher_id), attendance_justification_payments (record_id)
+e attendance_notifications (student_id) seguem o mesmo padrao; as definicoes de presencas continuam
+em online_attendance_settings.
+Script: db/manual/20261021_create_suspensions_and_attendances.sql.
+assessment_sheets (course_id), assessment_sheet_teachers (sheet_id, teacher_id), assessment_grades
+(sheet_id, student_id) e pauta_entries (student_id, course_id) seguem o mesmo padrao; pauta_settings
+guarda apenas o periodo de lancamento.
+Script: db/manual/20261022_create_assessments_and_pautas.sql.
+staff_documents (staff_id, type_id) segue o mesmo padrao; staff_document_types guarda apenas tipos.
+Script: db/manual/20261023_create_staff_documents.sql.
+finance_salary_registrations (staff_id, position_id, salary_type_id, bonus_type_id) e
+finance_salary_payments (staff_id) seguem o mesmo padrao; finance_positions, finance_salary_types,
+finance_bonus_types e finance_settings guardam apenas catalogos e regras.
+Script: db/manual/20261024_create_finance.sql.
+Scripts: db/manual/20261018_create_exam_registrations.sql e
+         db/manual/20261018_create_exam_settings.sql.
+
+leave_requests (staff_id) segue o mesmo padrao; nome, telefone, BI, cargo e cursos do funcionario sao lidos
+de staff_members, finance_positions e staff_course_assignments pelo ID. leave_settings guarda apenas o
+maximo de pedidos por mes.
+Script: db/manual/20261025_create_leave_requests.sql.
+notification_messages (staff_id, student_id) segue o mesmo padrao; manual_phone so existe quando o
+destinatario nao e uma pessoa registada. notification_settings guarda apenas a configuracao dos canais.
+Script: db/manual/20261025_create_notifications.sql.
+expenses, expense_catalog_items, purchases, purchase_returns e sales nao ligam a pessoas.
+Script: db/manual/20261025_create_expenses.sql.
+staff_attendance_records (staff_id) segue o mesmo padrao; nome, cargo e cursos do funcionario sao lidos de
+staff_members, finance_positions e staff_course_assignments pelo ID. Pagamentos e notificacoes tambem so
+guardam staff_id.
+Script: db/manual/20261025_create_staff_attendances.sql.
+staff_members e students ganham whatsapp_number e sms_number (dados do proprio registo).
+Script: db/manual/20261025_add_notification_numbers.sql.
+Codigos visiveis (CACOIN202601, HR0001, PROF0001, STAFF0001) nunca vem do ID da tabela nem de sequencias:
+students.student_number e staff_members.staff_number sao calculados na mesma transacao, depois da
+validacao, como MAX + 1 com bloqueio (pg_advisory_xact_lock), por isso comecam sempre em 1 e nao saltam.
+Scripts: db/manual/20261025_add_student_numbers.sql e 20261025_renumber_staff_codes.sql.
+Numeros de recibo (Exa, Tes, Uni, Gra, Tra, Jus, JusF, MEN, Sal, REC) nunca vem do ID: receipt_numbers guarda
+um numero sequencial por tipo, atribuido pelo servidor pela ordem de criacao dos registos.
+Script: db/manual/20261025_create_receipt_numbers.sql.
+system_statuses guarda os estados editaveis de todos os modulos (sem dados de pessoas).
+Script: db/manual/20261025_create_system_statuses.sql.
+Codigo do estudante CACOIN{ano}{numero}: students.student_year guarda o ano da inscricao e
+students.student_number recomeca em 01 em cada ano (indice unico por ano e numero).
+Script: db/manual/20261026_add_student_year_codes.sql.
+Pedidos dos estudantes: student_requests (request_number geral, student_id, course_id, type_id),
+student_request_types, student_request_settings e student_request_attachments. O numero visivel do
+pedido (CACOIN202601_P001) e calculado a partir do codigo do estudante e de request_number.
+Script: db/manual/20261026_create_student_requests.sql.
+Ano do sistema: system_settings guarda academic_year_end_month, previous_year_enabled e system_year;
+student_enrollments guarda enrollment_date (data de inscricao no ano do sistema). Todas as datas de
+negocio vem de SystemDate (nunca de LocalDate.now()). As mensalidades saltam os meses fora do ano lectivo.
+Script: db/manual/20261026_add_system_year_and_academic_months.sql.
+Usuarios: user_accounts (kind ADMIN/STUDENT/STAFF, code, student_id ou staff_id, password_hash, status,
+failed_attempts, datas de ultimo acesso/desactivacao/autobloqueio/termino) e user_settings (regras da
+palavra-passe, tentativas e horas de acesso). As contas de estudantes e funcionarios sao criadas a partir
+das pessoas (primeiro acesso: codigo + telefone sem +258, sem hash guardado ate mudarem a palavra-passe).
+O acesso a /api so e exigido quando existe um administrador (CACOIN_AUTH_ENFORCE=false desliga).
+Script: db/manual/20261027_create_user_accounts.sql.
+Auditoria: user_logs (account_id, actor_code, action CREATE/UPDATE/DELETE/LOGIN, entity_name, entity_id,
+changes em JSON com campo/de/para) e apagada de 2 em 2 meses (dia 1 dos meses impares) por UserLogRetention;
+record_audits (entity_name, entity_id, entry_account_id/entered_at, authorization_account_id/authorized_at)
+e permanente e alimenta o icone "Auditoria" das tabelas. Ambos sao escritos pelo AuditEventListener
+(eventos do Hibernate pos-commit) com o utilizador do AuditContext; sem utilizador autenticado nao ha log.
+Script: db/manual/20261028_create_user_logs_and_record_audits.sql.
+Dashboard: GET /api/dashboard agrega em memoria (sem tabelas proprias) KPIs e series de todos os modulos.
+Mobile Money: mobile_money_transactions (student_id, kind, item_id, amount, wallet, phone, status PENDING/SUCCESS/FAILED,
+provider_reference, failure_reason, recorded). Quando o gateway confirma, o pagamento e registado pelos servicos de cada
+modulo (cobrancas, testes, exames, uniformes, graduacao, trancamento, justificacao) com o metodo M-Pesa, e-Mola ou mKesh.
+O gateway e a interface MobileMoneyGateway (por omissao SimulatedMobileMoneyGateway).
+Script: db/manual/20261029_create_mobile_money_transactions.sql.
+Carteiras da instituicao: mobile_money_wallets (wallet MPESA/EMOLA/MKESH, account_number, account_name, active) define onde
+cai o dinheiro; mobile_money_transactions.destination_number guarda a carteira que recebeu.
+Script: db/manual/20261030_create_mobile_money_wallets.sql.
+Contas bancarias da instituicao: mobile_money_bank_accounts (bank_name, nib com 21 digitos unico, holder).
+Script: db/manual/20261031_create_mobile_money_bank_accounts.sql.
+Portal do estudante: /api/portal/** (sem tabelas proprias) devolve so os dados do estudante do token (conta STUDENT).
+O AuthFilter guarda o id do estudante no atributo cacoin.portal.studentId; os tokens de estudante nao acedem ao resto da API.
+
+Scripts: db/manual/20261018_create_test_registrations.sql e
+db/manual/20261018_create_test_settings.sql.
+
+Corrigido: tasks, task_comments - tinham nomes em texto (assignee, created_by, author). Passaram
+a assignee_id, created_by_id e author_id (ID em staff_members).
+  Scripts: db/manual/20261018_task_people_use_ids.sql e
+           db/manual/20261018_drop_task_person_name_columns.sql (so depois de confirmar).
+
+Pendente / a confirmar: a tabela cob_reports tem a coluna created_by_name (nome em texto de quem
+criou o relatorio). Nao ha codigo dela neste projecto, por isso nao foi alterada; quando esse
+modulo voltar a ser usado, trocar por um ID de pessoa.
+
+Nao e dado de pessoa (por isso fora desta regra): nomes de curso, categoria, nivel e
+modalidade guardados em student_enrollments, que sao o registo do que foi contratado.
