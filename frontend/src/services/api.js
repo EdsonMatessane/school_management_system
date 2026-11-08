@@ -49,12 +49,19 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Ao criar o primeiro administrador o sistema passa a exigir sessão. Enquanto o ecrã mostra a
+// palavra-passe temporária, um 401 não pode recarregar a página (apagaria o que se acabou de ler).
+let holdUnauthorizedReload = false;
+export const holdUnauthorizedRedirect = (hold) => {
+  holdUnauthorizedReload = hold;
+};
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && !error.config?.url?.startsWith('/auth/')) {
       setAuthToken(null);
-      window.location.reload();
+      if (!holdUnauthorizedReload) window.location.reload();
     }
     return Promise.reject(error);
   },

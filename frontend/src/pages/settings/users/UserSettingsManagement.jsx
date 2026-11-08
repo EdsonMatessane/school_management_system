@@ -22,8 +22,10 @@ import StatusSettingsTable from '../../../components/StatusSettingsTable';
 import {
   applyUserAccountAction,
   createAdminAccount,
+  getAuthToken,
   getUserAccounts,
   getUserSettings,
+  holdUnauthorizedRedirect,
   updateAdminAccount,
   updateUserSettings,
 } from '../../../services/api';
@@ -103,6 +105,7 @@ export default function UserSettingsManagement({ mode }) {
   const [custom, setCustom] = useState(false);
   const [settings, setSettings] = useState(emptySettings);
   const [credential, setCredential] = useState(null);
+  const [firstSetup, setFirstSetup] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [editingSetting, setEditingSetting] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -161,16 +164,35 @@ export default function UserSettingsManagement({ mode }) {
         await updateAdminAccount(editingId, payload);
         setNotice('Administrador actualizado.');
       } else {
+        // Sem sessão = configuração inicial: este é o primeiro administrador.
+        const initial = !getAuthToken();
+        if (initial) holdUnauthorizedRedirect(true);
         const created = await createAdminAccount(payload);
+        setFirstSetup(initial);
         setCredential(created);
         setNotice('Administrador criado.');
+        if (initial) {
+          // A lista já exige sessão; só se carrega depois de entrar.
+          resetAdminForm();
+          return;
+        }
       }
       resetAdminForm();
       await load();
     } catch (saveError) {
+      holdUnauthorizedRedirect(false);
       setError(errorMessage(saveError));
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Depois de anotar a palavra-passe do primeiro administrador, segue-se para o login.
+  const closeCredential = () => {
+    setCredential(null);
+    if (firstSetup) {
+      holdUnauthorizedRedirect(false);
+      window.location.reload();
     }
   };
 
@@ -538,7 +560,16 @@ export default function UserSettingsManagement({ mode }) {
 
       {(mode === 'password' || mode === 'access') && settingsTable}
 
-      <Dialog open={Boolean(credential)} onClose={() => setCredential(null)} fullWidth maxWidth="xs">
+      <Dialog
+        open={Boolean(credential)}
+        onClose={(event, reason) => {
+          // Na configuração inicial só o botão «Fechar» fecha: a palavra-passe não se mostra outra vez.
+          if (firstSetup && reason) return;
+          closeCredential();
+        }}
+        fullWidth
+        maxWidth="xs"
+      >
         <DialogTitle>Palavra-passe temporária</DialogTitle>
         <DialogContent>
           <TextField
@@ -558,7 +589,7 @@ export default function UserSettingsManagement({ mode }) {
           />
         </DialogContent>
         <DialogActions>
-          <Button variant="contained" onClick={() => setCredential(null)}>Fechar</Button>
+          <Button variant="contained" onClick={closeCredential}>Fechar</Button>
         </DialogActions>
       </Dialog>
     </section>
