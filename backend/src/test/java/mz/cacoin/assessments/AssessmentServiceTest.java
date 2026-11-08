@@ -120,14 +120,14 @@ class AssessmentServiceTest {
   }
 
   @Test
-  void newRecordRejectsDuplicatesAndCoursesWithoutTeachers() {
-    when(sheets.findByCourseIdAndAcademicYear(3L, Year.now().getValue()))
-        .thenReturn(Optional.of(sheet));
-    assertEquals(409, assertThrows(ResponseStatusException.class,
+  void newRecordRejectsCoursesWithoutTeachersAndWhenNoNewStudentsExist() {
+    when(sheets.findAllByCourseIdAndAcademicYearOrderByIdAsc(3L, Year.now().getValue()))
+        .thenReturn(List.of(sheet));
+    assertEquals(400, assertThrows(ResponseStatusException.class,
         () -> service.create(new AssessmentSheetRequest(3L))).getStatusCode().value());
 
-    when(sheets.findByCourseIdAndAcademicYear(3L, Year.now().getValue()))
-        .thenReturn(Optional.empty());
+    when(sheets.findAllByCourseIdAndAcademicYearOrderByIdAsc(3L, Year.now().getValue()))
+        .thenReturn(List.of());
     when(teacherAssignments.findAllByCourseIdAndActiveTrue(3L)).thenReturn(List.of());
     assertEquals(400, assertThrows(ResponseStatusException.class,
         () -> service.create(new AssessmentSheetRequest(3L))).getStatusCode().value());
@@ -195,21 +195,23 @@ class AssessmentServiceTest {
 
   @Test
   void gradesTableShowsEveryComponentPerStudentWithTheTeachers() {
-    when(sheets.findByCourseIdAndAcademicYear(3L, Year.now().getValue()))
-        .thenReturn(Optional.of(sheet));
+    when(sheets.findAllByCourseIdAndAcademicYearOrderByIdAsc(3L, Year.now().getValue()))
+        .thenReturn(List.of(sheet));
     AssessmentSheetTeacher link = new AssessmentSheetTeacher();
     link.setSheet(sheet);
     link.setTeacher(teacher);
     when(sheetTeachers.findAllBySheetIdIn(List.of(1L))).thenReturn(List.of(link));
     AssessmentGrade t1 = new AssessmentGrade();
+    t1.setSheet(sheet);
     t1.setStudent(student);
     t1.setComponent("T1");
     t1.setGrade(new BigDecimal("12.50"));
     AssessmentGrade e1 = new AssessmentGrade();
+    e1.setSheet(sheet);
     e1.setStudent(student);
     e1.setComponent("E1");
     e1.setAbsent(true);
-    when(grades.findAllBySheetId(1L)).thenReturn(List.of(t1, e1));
+    when(grades.findAllBySheetIdIn(List.of(1L))).thenReturn(List.of(t1, e1));
 
     List<AssessmentGradesRowResponse> rows = service.notas(3L, null);
 
