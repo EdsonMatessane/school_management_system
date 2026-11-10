@@ -9,4 +9,6 @@ public record SalaryRegistrationRequest(
     BigDecimal salary,
     Long bonusTypeId,
     BigDecimal bonus,
-    String observation) {}
+    String observation,
+    String bankName,
+    String nib) {}

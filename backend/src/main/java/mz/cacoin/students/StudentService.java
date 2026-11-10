@@ -308,7 +308,7 @@ public class StudentService {
     student.setMotherName(optionalText(request.motherName()));
     student.setGender(validateGender(request.gender()));
     student.setBirthDate(request.birthDate());
-    student.setBiNumber(biNumber);
+    student.setBiNumber(biNumber == null ? null : biNumber.toUpperCase(java.util.Locale.ROOT));
     student.setNuit(nuit);
     student.setIssueDate(request.issueDate());
     student.setExpiryDate(request.expiryDate());

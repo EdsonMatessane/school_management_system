@@ -12,6 +12,7 @@ const categoryLabels = {
   TASK: 'Tarefas',
   LEAVE: 'Pedidos de saída',
   DOCUMENT: 'Documentos',
+  SALARY: 'Salários',
 };
 
 const columns = [

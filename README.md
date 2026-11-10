@@ -180,6 +180,26 @@ incorporados (`X-Frame-Options` ou `frame-ancestors`) aparecem em branco; use **
 Trocar de instituição no login recarrega a página sem voltar a mostrar a página inicial
 (`cacoin.skipFrontPage` em `sessionStorage`).
 
+## Salários: banco, NIB e confirmação de recebimento
+
+- **Cadastro de salário** (Finanças › Registo): o cargo vem do funcionário e o salário e o bónus vêm
+  dos tipos escolhidos; estes campos preenchidos sozinhos ficam desactivados (`disabled`). Pede-se
+  também o **Banco** e o **NIB**; a **Conta** é extraída do NIB e fica desactivada.
+- **NIB moçambicano**: exactamente 21 dígitos = banco (4) + balcão (4) + conta (11) + controlo (2);
+  a conta são os dígitos 9 a 19. A validação (`finance/Nib.java` e `frontend/src/utils/nib.js`)
+  verifica o comprimento, que o banco não seja `0000` e que a conta não seja só zeros. Os dígitos de
+  controlo não são verificados.
+- **Recibo e tabelas de salários**: levam as colunas Banco, Conta e NIB, e o recibo assina-se com
+  «O Funcionário» (`receipt.signer`; os restantes recibos continuam com «O Estudante»).
+- **Confirmação**: ao processar um pagamento, o funcionário recebe a notificação «Salário
+  processado» (categoria Salários) e confirma o recebimento na coluna de acções da sua tabela
+  (`POST /api/finance/payments/{id}/confirmation`, só o próprio funcionário; 409 se já confirmado).
+  A administração vê a coluna «Confirmação do Recebimento», e a auditoria regista quem confirmou
+  (`confirmedAt` e `confirmedById`) e quando.
+- **Notificações do funcionário**: a mais recente aparece primeiro (data, depois hora, depois o
+  número do registo).
+- **BI**: guarda-se sempre em maiúsculas. `displayText` não altera BI, NUIT, NIB, códigos nem emails.
+
 ## Configurações do sistema
 
 As configurações em `/api/settings` mantêm preferências do calendário escolar,
@@ -681,6 +701,7 @@ Scripts desta série (executar à mão em bases antigas se necessário):
 - `20261106_system_partitions.sql` — identidade da instalação e registo de repartições.
 - `20261107_add_mobile_money_wallet_credentials.sql` — credenciais do M-Pesa nas carteiras.
 - `20261107_create_institution_site.sql` — website da instituição.
+- `20261108_salary_bank_and_confirmation.sql` — banco e NIB no cadastro de salário e confirmação de recebimento.
 
 ## Armadilhas conhecidas
 

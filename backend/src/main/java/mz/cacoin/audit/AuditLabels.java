@@ -35,7 +35,8 @@ public class AuditLabels {
   private static final List<String> SUBJECT_IDS = List.of("studentId", "staffId", "teacherId");
   private static final Set<String> STUDENT_IDS = Set.of("studentId");
   private static final Set<String> STAFF_IDS = Set.of(
-      "staffId", "teacherId", "requesterId", "assigneeId", "createdById", "authorId", "addedById");
+      "staffId", "teacherId", "requesterId", "assigneeId", "createdById", "authorId", "addedById",
+      "confirmedById");
 
   private final EntityManagerFactory entityManagerFactory;
 

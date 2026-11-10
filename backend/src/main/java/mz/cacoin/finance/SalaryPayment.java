@@ -64,6 +64,13 @@ public class SalaryPayment {
   @Column(name = "liquidated_at")
   private Instant liquidatedAt;
 
+  /** Quando o próprio funcionário confirmou que recebeu o pagamento. */
+  @Column(name = "confirmed_at")
+  private Instant confirmedAt;
+
+  @Column(name = "confirmed_by_id")
+  private Long confirmedById;
+
   @PrePersist
   private void setProcessedAtIfMissing() {
     if (processedAt == null) {

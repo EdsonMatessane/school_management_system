@@ -22,4 +22,7 @@ public record SalaryRegistrationResponse(
     LocalDate registrationDate,
     String observation,
     String status,
-    LocalDate lastProcessedDate) {}
+    LocalDate lastProcessedDate,
+    String bankName,
+    String account,
+    String nib) {}

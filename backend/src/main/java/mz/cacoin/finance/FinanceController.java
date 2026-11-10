@@ -60,6 +60,11 @@ public class FinanceController {
     return finance.process(request);
   }
 
+  @PostMapping("/payments/{id}/confirmation")
+  public SalaryPaymentResponse confirmReceipt(@PathVariable Long id) {
+    return finance.confirmReceipt(id);
+  }
+
   @PostMapping("/payments/advance")
   @ResponseStatus(HttpStatus.CREATED)
   public SalaryPaymentResponse advance(@RequestBody SalaryPaymentRequest request) {

@@ -597,7 +597,10 @@ public class StaffService {
   }
 
   private String documentNumber(StaffDocumentType type, String value) {
-    if (isBiType(type)) return optionalText(value);
+    if (isBiType(type)) {
+      String bi = optionalText(value);
+      return bi == null ? null : bi.toUpperCase(Locale.ROOT);
+    }
     if (value == null || value.isBlank()) return null;
     return value.trim().toUpperCase(Locale.ROOT);
   }

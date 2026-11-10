@@ -23,4 +23,9 @@ public record SalaryPaymentResponse(
     BigDecimal bonus,
     BigDecimal discountedBalance,
     String observation,
-    LocalDateTime processedAt) {}
+    LocalDateTime processedAt,
+    String bankName,
+    String account,
+    String nib,
+    LocalDateTime confirmedAt,
+    String confirmedByName) {}

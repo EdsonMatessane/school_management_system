@@ -285,6 +285,7 @@ public class TeacherPolicy {
     get("/api/finance/registrations", selfStaff, null);
     get("/api/finance/pending", selfStaff, null);
     get("/api/finance/payments", selfStaff, null);
+    add(Set.of("POST"), "/api/finance/payments/{id}/confirmation", Filter.NONE, null);
     get("/api/finance/debts", selfStaff, null);
     get("/api/finance/reports", selfStaff, null);
 

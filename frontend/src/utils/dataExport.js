@@ -406,7 +406,8 @@ export function exportReceiptToPdf(receipt) {
   doc.line(pageWidth - margin - 78, y, pageWidth - margin - 8, y);
   doc.setFont('times', 'normal');
   doc.setFontSize(10);
-  doc.text('O Estudante', margin + 43, y + 5, { align: 'center' });
+  // «O Estudante» é o recibo por omissão; recibos de funcionários indicam o seu `signer`.
+  doc.text(receipt.signer ?? 'O Estudante', margin + 43, y + 5, { align: 'center' });
   doc.text('A Secretaria', pageWidth - margin - 43, y + 5, { align: 'center' });
 
   downloadFile(doc.output('arraybuffer'), `${receipt.filename}.pdf`, 'application/pdf');

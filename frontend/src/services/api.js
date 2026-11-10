@@ -443,6 +443,8 @@ export const updateSalaryRegistration = (id, registration) =>
   api.put(`/finance/registrations/${id}`, registration).then((response) => response.data);
 export const deleteSalaryRegistration = (id) =>
   api.delete(`/finance/registrations/${id}`).then((response) => response.data);
+export const confirmSalaryReceipt = (id) =>
+  api.post(`/finance/payments/${id}/confirmation`).then((response) => response.data);
 export const getSalaryPayments = (kind) =>
   api.get('/finance/payments', { params: kind ? { kind } : {} }).then((response) => response.data);
 export const processSalary = (payment) =>

@@ -55,6 +55,10 @@ public class SalaryRegistration {
 
   @Column(length = 500)
   private String observation;
+  @Column(name = "bank_name", length = 120)
+  private String bankName;
+  @Column(length = 21)
+  private String nib;
 
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;

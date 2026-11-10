@@ -17,7 +17,7 @@ import {
   TextField,
   Tooltip,
 } from '@mui/material';
-import { ReceiptText } from 'lucide-react';
+import { BadgeCheck, ReceiptText } from 'lucide-react';
 import DataExportMenu from '../../components/DataExportMenu';
 import Money from '../../components/Money';
 import ReceiptView from '../../components/ReceiptView';
@@ -25,6 +25,7 @@ import SearchField from '../../components/SearchField';
 import StandardTable from '../../components/StandardTable';
 import {
   advanceSalary,
+  confirmSalaryReceipt,
   getFinanceSettings,
   getSalaryDebts,
   getSalaryPayments,
@@ -36,6 +37,7 @@ import {
 import { displayText } from '../../utils/displayText';
 import { formatMoney as money } from '../../utils/money';
 import { filterBySearch } from '../../utils/search';
+import { formatNib } from '../mobilemoney/mobileMoneyUtils';
 import EmployeePicker from './EmployeePicker';
 import { ownDetails, withoutPersonal } from './ownReport';
 import {
@@ -67,20 +69,30 @@ const personColumns = [
   { key: 'bonusTypeName', label: 'Tipo de Bónus' },
   { key: 'bonus', label: 'Bónus' },
   { key: 'discountedBalance', label: 'Saldo Descontado' },
+  { key: 'bankName', label: 'Banco' },
+  { key: 'account', label: 'Conta' },
+  { key: 'nib', label: 'NIB' },
   { key: 'observation', label: 'Observação' },
   { key: 'processedAt', label: 'Data/Hora de Processamento' },
+  { key: 'confirmation', label: 'Confirmação do Recebimento' },
   { key: 'status', label: 'Estado' },
   { key: 'actions', label: 'Acções', align: 'right' },
 ];
 
 const buildPayslip = (item) => {
   const gross = Number(item.paidAmount) + Number(item.bonus);
+  const bank = {
+    bank: (item.bankName || '—'),
+    account: item.account || '—',
+    nib: formatNib(item.nib) || '—',
+  };
   return {
     filename: `recibo-salario-${item.staffCode}-${String(item.month).slice(0, 7)}`,
     title: 'Recibo de salário',
     number: '',
     issueDate: formatDateTime(item.processedAt).slice(0, 10),
     status: statusLabels[item.status],
+    signer: 'O Funcionário',
     sections: [
       {
         title: 'Dados do funcionário',
@@ -99,6 +111,7 @@ const buildPayslip = (item) => {
           ['Mês de referência', monthLabel(item.month)],
           ['Tipo de salário', displayText(item.salaryTypeName)],
           ['Observação', displayText(item.observation)],
+          ['Confirmação', item.confirmedAt ? `Confirmado em ${formatDateTime(item.confirmedAt)}` : 'Pendente'],
         ],
       },
     ],
@@ -107,6 +120,9 @@ const buildPayslip = (item) => {
       { key: 'amount', label: 'Valor', align: 'right' },
       { key: 'paid', label: 'Pago', align: 'right' },
       { key: 'balance', label: 'Saldo descontado', align: 'right' },
+      { key: 'bank', label: 'Banco' },
+      { key: 'account', label: 'Conta' },
+      { key: 'nib', label: 'NIB' },
     ],
     items: [
       {
@@ -114,12 +130,14 @@ const buildPayslip = (item) => {
         amount: money(item.salary),
         paid: money(item.paidAmount),
         balance: money(item.discountedBalance),
+        ...bank,
       },
       ...(Number(item.bonus) > 0 ? [{
         description: `Bónus${item.bonusTypeName ? ` — ${item.bonusTypeName}` : ''}`,
         amount: money(item.bonus),
         paid: money(item.bonus),
         balance: money(0),
+        ...bank,
       }] : []),
     ],
     totals: {
@@ -267,8 +285,8 @@ function PaymentForm({ mode }) {
             renderInput={(params) => <TextField {...params} required label="Mês de Dívida" size="small" />}
           />
         )}
-        <TextField size="small" label="Cargo" value={selected ? displayText(selected.positionName) : ''} slotProps={{ input: { readOnly: true } }} />
-        <TextField size="small" label="Tipo de Salário" value={selected ? displayText(selected.salaryTypeName) : ''} slotProps={{ input: { readOnly: true } }} />
+        <TextField size="small" label="Cargo" value={selected ? displayText(selected.positionName) : ''} disabled />
+        <TextField size="small" label="Tipo de Salário" value={selected ? displayText(selected.salaryTypeName) : ''} disabled />
         <TextField
           size="small"
           label="Salário"
@@ -277,14 +295,19 @@ function PaymentForm({ mode }) {
           onChange={(event) => setAmount(event.target.value)}
           error={Boolean(amountError)}
           helperText={amountError || (rule === 'PARTIAL' && chosenMonth ? `Máximo ${money(max)}` : undefined)}
-          disabled={rule === 'PARTIAL' && !chosenMonth}
-          slotProps={rule === 'PARTIAL'
-            ? { htmlInput: { min: 0.01, max, step: 0.01 } }
-            : { input: { readOnly: true } }}
+          disabled={rule === 'PARTIAL' ? !chosenMonth : true}
+          slotProps={rule === 'PARTIAL' ? { htmlInput: { min: 0.01, max, step: 0.01 } } : undefined}
         />
-        <TextField size="small" label="Tipo de Bónus" value={selected ? displayText(selected.bonusTypeName) : ''} slotProps={{ input: { readOnly: true } }} />
-        <TextField size="small" label="Bónus" value={selected?.bonusTypeName ? money(selected.bonus) : ''} slotProps={{ input: { readOnly: true } }} />
-        <TextField size="small" label="Saldo Descontado" value={chosenMonth ? money(discounted) : ''} slotProps={{ input: { readOnly: true } }} />
+        <TextField size="small" label="Tipo de Bónus" value={selected ? displayText(selected.bonusTypeName) : ''} disabled />
+        <TextField size="small" label="Bónus" value={selected?.bonusTypeName ? money(selected.bonus) : ''} disabled />
+        <TextField size="small" label="Saldo Descontado" value={chosenMonth ? money(discounted) : ''} disabled />
+        {mode !== 'settle' && (
+          <>
+            <TextField size="small" label="Banco" value={selected ? (selected.bankName || '—') : ''} disabled />
+            <TextField size="small" label="Conta" value={selected?.account ?? ''} disabled />
+            <TextField size="small" label="NIB" value={selected ? formatNib(selected.nib) : ''} disabled />
+          </>
+        )}
         <TextField
           size="small"
           label="Observação"
@@ -306,6 +329,9 @@ function PaymentList({ mode }) {
   const advanced = mode === 'advanced';
   const [rows, setRows] = useState([]);
   const [receiptItem, setReceiptItem] = useState(null);
+  const [confirmItem, setConfirmItem] = useState(null);
+  const [confirming, setConfirming] = useState(false);
+  const [notice, setNotice] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -337,7 +363,25 @@ function PaymentList({ mode }) {
   const visible = useMemo(() => filterBySearch(rows, searchTerm, (item) => [
     item.staffCode, item.staffName, item.phone, item.biNumber, item.nuit,
     item.positionName, item.salaryTypeName, monthLabel(item.month), statusLabels[item.status],
+    item.bankName, item.account, item.nib,
   ]), [rows, searchTerm]);
+  const confirmationText = (item) => (
+    item.confirmedAt ? `Confirmado em ${formatDateTime(item.confirmedAt)}` : 'Pendente'
+  );
+  const confirmReceipt = async () => {
+    setConfirming(true);
+    setError('');
+    try {
+      const updated = await confirmSalaryReceipt(confirmItem.id);
+      setRows((current) => current.map((row) => (row.id === updated.id ? updated : row)));
+      setNotice('Recebimento confirmado.');
+    } catch (confirmError) {
+      setError(errorMessage(confirmError));
+    } finally {
+      setConfirming(false);
+      setConfirmItem(null);
+    }
+  };
   const exportColumns = columns.filter(({ key }) => key !== 'actions');
   const exportRows = visible.map((item) => ({
     month: monthLabel(item.month),
@@ -352,8 +396,12 @@ function PaymentList({ mode }) {
     bonusTypeName: displayText(item.bonusTypeName),
     bonus: Number(item.bonus) > 0 ? money(item.bonus) : '—',
     discountedBalance: money(item.discountedBalance),
+    bankName: (item.bankName || '—'),
+    account: item.account || '—',
+    nib: formatNib(item.nib) || '—',
     observation: displayText(item.observation),
     processedAt: formatDateTime(item.processedAt),
+    confirmation: confirmationText(item),
     status: statusLabels[item.status],
   }));
   const receiptNumber = useReceiptNumber('SALARY', receiptItem?.id);
@@ -376,6 +424,7 @@ function PaymentList({ mode }) {
           onError={(exportError) => setError(errorMessage(exportError))}
         />
       </div>
+      {notice && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setNotice('')}>{notice}</Alert>}
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
       <StandardTable
         audit="SalaryPayment"
@@ -407,14 +456,33 @@ function PaymentList({ mode }) {
             <TableCell>{displayText(row.bonusTypeName)}</TableCell>
             <TableCell>{Number(row.bonus) > 0 ? <Money value={row.bonus} /> : '—'}</TableCell>
             <TableCell><Money value={row.discountedBalance} /></TableCell>
+            <TableCell>{(row.bankName || '—')}</TableCell>
+            <TableCell>{row.account || '—'}</TableCell>
+            <TableCell>{formatNib(row.nib) || '—'}</TableCell>
             <TableCell>{displayText(row.observation)}</TableCell>
             <TableCell>{formatDateTime(row.processedAt)}</TableCell>
+            <TableCell>
+              <span className={`cacoin-status-badge ${row.confirmedAt ? 'paid' : 'pending'}`}>
+                {confirmationText(row)}
+              </span>
+            </TableCell>
             <TableCell>
               <span className={`cacoin-status-badge ${statusClass(row.status)}`}>
                 {statusLabels[row.status]}
               </span>
             </TableCell>
             <TableCell align="right">
+              {own && !row.confirmedAt && (
+                <Tooltip title="Confirmar recebimento">
+                  <IconButton
+                    aria-label={`Confirmar recebimento de ${monthLabel(row.month)}`}
+                    disabled={confirming}
+                    onClick={() => setConfirmItem(row)}
+                  >
+                    <BadgeCheck size={17} />
+                  </IconButton>
+                </Tooltip>
+              )}
               <Tooltip title="Ver recibo">
                 <IconButton
                   aria-label={`Ver recibo de ${row.staffCode}`}
@@ -427,6 +495,18 @@ function PaymentList({ mode }) {
           </TableRow>
         )}
       />
+      <Dialog open={Boolean(confirmItem)} onClose={() => !confirming && setConfirmItem(null)} fullWidth maxWidth="xs">
+        <DialogTitle>Confirmar recebimento</DialogTitle>
+        <DialogContent>
+          Confirma que recebeu o pagamento de {monthLabel(confirmItem?.month)}?
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmItem(null)} disabled={confirming}>Cancelar</Button>
+          <Button variant="contained" onClick={confirmReceipt} disabled={confirming}>
+            {confirming ? 'A confirmar…' : 'Confirmar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Dialog open={Boolean(receiptItem)} onClose={() => setReceiptItem(null)} fullWidth maxWidth="md">
         <DialogTitle>Recibo — {receiptItem?.staffCode}</DialogTitle>
         <DialogContent>

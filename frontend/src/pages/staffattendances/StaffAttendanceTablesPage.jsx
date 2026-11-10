@@ -117,6 +117,7 @@ const buildReceipt = (item, type) => {
     number: '',
     issueDate: toDisplayDate(todayIso()),
     status: item.justification === 'JUSTIFIED' ? 'Pago' : 'Pendente',
+    signer: 'O Funcionário',
     sections: [
       {
         title: 'Dados do funcionário',

@@ -189,7 +189,7 @@ export default function ReceiptView({ receipt }) {
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 4, pt: 3 }}>
-          {['O Estudante', 'A Secretaria'].map((label) => (
+          {[receipt.signer ?? 'O Estudante', 'A Secretaria'].map((label) => (
             <Box key={label} sx={{ flex: 1, textAlign: 'center', fontSize: 12 }}>
               <Box sx={{ borderTop: '1px solid #19232d', mx: 2, pt: 0.5 }}>{label}</Box>
             </Box>

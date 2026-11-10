@@ -34,6 +34,8 @@ import { toDisplayDate } from '../../utils/date';
 import { displayText } from '../../utils/displayText';
 import { formatMoney as money } from '../../utils/money';
 import { filterBySearch } from '../../utils/search';
+import { cleanNib, MOZAMBIQUE_BANKS, nibAccount, nibError } from '../../utils/nib';
+import { formatNib } from '../mobilemoney/mobileMoneyUtils';
 import EmployeePicker from './EmployeePicker';
 import { errorMessage, parseAmount, statusClass, statusLabels } from './financeUtils';
 
@@ -48,6 +50,9 @@ const columns = [
   { key: 'salary', label: 'Salário' },
   { key: 'bonusTypeName', label: 'Tipo de Bónus' },
   { key: 'bonus', label: 'Bónus' },
+  { key: 'bankName', label: 'Banco' },
+  { key: 'account', label: 'Conta' },
+  { key: 'nib', label: 'NIB' },
   { key: 'registrationDate', label: 'Data de Cadastro' },
   { key: 'observation', label: 'Observação' },
   { key: 'status', label: 'Estado' },
@@ -61,10 +66,15 @@ const emptyForm = {
   salary: '',
   bonusType: null,
   bonus: '',
+  bankName: '',
+  nib: '',
   observation: '',
 };
 
 function RegistrationFields({ form, setForm, positions, salaryTypes, bonusTypes, disabled }) {
+  const [nibTouched, setNibTouched] = useState(false);
+  const nibProblem = nibError(form.nib);
+  const showNibProblem = Boolean(nibProblem) && (nibTouched || form.nib.length === 21);
   return (
     <>
       <Autocomplete
@@ -73,7 +83,8 @@ function RegistrationFields({ form, setForm, positions, salaryTypes, bonusTypes,
         onChange={(_, value) => setForm((current) => ({ ...current, position: value }))}
         getOptionLabel={(option) => option.name}
         isOptionEqualToValue={(option, value) => option.id === value.id}
-        disabled={disabled}
+        // O cargo vem do funcionário (preenchido sozinho); só se escolhe se ele não tiver cargo.
+        disabled={disabled || Boolean(form.employee?.positionId)}
         renderInput={(params) => <TextField {...params} required label="Cargo" size="small" />}
       />
       <Autocomplete
@@ -95,8 +106,7 @@ function RegistrationFields({ form, setForm, positions, salaryTypes, bonusTypes,
         type="number"
         label="Salário"
         value={form.salary}
-        onChange={(event) => setForm((current) => ({ ...current, salary: event.target.value }))}
-        disabled={disabled}
+        disabled
         slotProps={{ htmlInput: { min: 0.01, step: 0.01 } }}
       />
       <Autocomplete
@@ -117,9 +127,34 @@ function RegistrationFields({ form, setForm, positions, salaryTypes, bonusTypes,
         type="number"
         label="Bónus"
         value={form.bonus}
-        onChange={(event) => setForm((current) => ({ ...current, bonus: event.target.value }))}
-        disabled={disabled || !form.bonusType}
+        disabled
         slotProps={{ htmlInput: { min: 0.01, step: 0.01 } }}
+      />
+      <Autocomplete
+        freeSolo
+        options={MOZAMBIQUE_BANKS}
+        inputValue={form.bankName}
+        onInputChange={(_, value) => setForm((current) => ({ ...current, bankName: value }))}
+        disabled={disabled}
+        renderInput={(params) => <TextField {...params} required label="Banco" size="small" />}
+      />
+      <TextField
+        required
+        size="small"
+        label="NIB"
+        value={form.nib}
+        onChange={(event) => setForm((current) => ({ ...current, nib: cleanNib(event.target.value) }))}
+        onBlur={() => setNibTouched(true)}
+        disabled={disabled}
+        error={showNibProblem}
+        helperText={showNibProblem ? nibProblem : undefined}
+        slotProps={{ htmlInput: { inputMode: 'numeric', maxLength: 21 } }}
+      />
+      <TextField
+        size="small"
+        label="Conta"
+        value={nibAccount(form.nib)}
+        disabled
       />
       <TextField
         size="small"
@@ -185,11 +220,15 @@ export default function SalaryRegistrationPage({ mode }) {
   const toPayload = (source) => {
     const salary = parseAmount(source.salary);
     const bonus = source.bonusType ? parseAmount(source.bonus) : null;
+    const bankName = source.bankName.trim();
+    const nib = cleanNib(source.nib);
     if (!source.position || !source.salaryType || !(salary > 0)
-      || (source.bonusType && !(bonus > 0))) {
+      || (source.bonusType && !(bonus > 0)) || !bankName || nibError(nib) || nib.length !== 21) {
       return null;
     }
     return {
+      bankName,
+      nib,
       positionId: source.position.id,
       salaryTypeId: source.salaryType.id,
       salary,
@@ -219,7 +258,7 @@ export default function SalaryRegistrationPage({ mode }) {
     event.preventDefault();
     const payload = toPayload(form);
     if (!form.employee || !payload) {
-      setError('Selecione o funcionário, o cargo, o tipo de salário e valores válidos.');
+      setError('Selecione o funcionário e preencha o cargo, o tipo de salário, o banco e um NIB válido.');
       return;
     }
     run(
@@ -231,12 +270,22 @@ export default function SalaryRegistrationPage({ mode }) {
 
   const openEdit = (row) => setEditing({
     id: row.id,
-    employee: { id: row.staffId, code: row.staffCode, name: row.staffName, phone: row.phone, biNumber: row.biNumber, nuit: row.nuit },
+    employee: {
+      id: row.staffId,
+      code: row.staffCode,
+      name: row.staffName,
+      phone: row.phone,
+      biNumber: row.biNumber,
+      nuit: row.nuit,
+      positionId: employees.find((item) => item.id === row.staffId)?.positionId ?? null,
+    },
     position: positions.find((item) => item.id === row.positionId) ?? null,
     salaryType: salaryTypes.find((item) => item.id === row.salaryTypeId) ?? null,
     salary: String(row.salary),
     bonusType: bonusTypes.find((item) => item.id === row.bonusTypeId) ?? null,
     bonus: row.bonusTypeId ? String(row.bonus) : '',
+    bankName: row.bankName ?? '',
+    nib: row.nib ?? '',
     observation: row.observation ?? '',
   });
 
@@ -244,7 +293,7 @@ export default function SalaryRegistrationPage({ mode }) {
     event.preventDefault();
     const payload = toPayload(editing);
     if (!payload) {
-      setError('Indique o cargo, o tipo de salário e valores válidos.');
+      setError('Indique o cargo, o tipo de salário, o banco e um NIB válido.');
       return;
     }
     run(
@@ -263,6 +312,9 @@ export default function SalaryRegistrationPage({ mode }) {
     item.positionName,
     item.salaryTypeName,
     item.bonusTypeName,
+    item.bankName,
+    item.account,
+    item.nib,
     statusLabels[item.status],
   ]), [registrations, searchTerm]);
   const exportRows = rows.map((item) => ({
@@ -276,6 +328,9 @@ export default function SalaryRegistrationPage({ mode }) {
     salary: money(item.salary),
     bonusTypeName: displayText(item.bonusTypeName),
     bonus: item.bonusTypeId ? money(item.bonus) : '—',
+    bankName: (item.bankName || '—'),
+    account: item.account || '—',
+    nib: formatNib(item.nib) || '—',
     registrationDate: toDisplayDate(item.registrationDate),
     observation: displayText(item.observation),
     status: statusLabels[item.status],
@@ -318,7 +373,12 @@ export default function SalaryRegistrationPage({ mode }) {
             <EmployeePicker
               employees={available}
               value={form.employee}
-              onChange={(employee) => setForm((current) => ({ ...current, employee }))}
+              onChange={(employee) => setForm((current) => ({
+                ...current,
+                employee,
+                // Cargo do funcionário: preenche-se sozinho.
+                position: positions.find((item) => item.id === employee?.positionId) ?? null,
+              }))}
             />
             <RegistrationFields
               form={form}
@@ -360,6 +420,9 @@ export default function SalaryRegistrationPage({ mode }) {
               <TableCell><Money value={row.salary} /></TableCell>
               <TableCell>{displayText(row.bonusTypeName)}</TableCell>
               <TableCell>{row.bonusTypeId ? <Money value={row.bonus} /> : '—'}</TableCell>
+              <TableCell>{(row.bankName || '—')}</TableCell>
+              <TableCell>{row.account || '—'}</TableCell>
+              <TableCell>{formatNib(row.nib) || '—'}</TableCell>
               <TableCell>{toDisplayDate(row.registrationDate)}</TableCell>
               <TableCell>{displayText(row.observation)}</TableCell>
               <TableCell>

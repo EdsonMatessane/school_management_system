@@ -37,15 +37,66 @@ const staffLabels = {
 const exportColumns = [
   { key: 'staffCode', label: 'Código do Funcionário' },
   { key: 'name', label: 'Nome' },
-  { key: 'position', label: 'Cargo' },
+  { key: 'fatherName', label: 'Nome do Pai' },
+  { key: 'motherName', label: 'Nome da Mãe' },
   { key: 'gender', label: 'Género' },
+  { key: 'birthDate', label: 'Data de Nascimento' },
+  { key: 'position', label: 'Cargo' },
+  { key: 'documentType', label: 'Tipo de Documento' },
+  { key: 'biNumber', label: 'Número do Documento' },
+  { key: 'issueDate', label: 'Data de Emissão' },
+  { key: 'expiryDate', label: 'Data de Validade' },
+  { key: 'nuit', label: 'NUIT' },
+  { key: 'country', label: 'País' },
+  { key: 'naturality', label: 'Naturalidade' },
+  { key: 'addressProvince', label: 'Província' },
+  { key: 'addressDistrict', label: 'Distrito' },
+  { key: 'address', label: 'Endereço' },
   { key: 'phone', label: 'Telefone' },
+  { key: 'whatsappNumber', label: 'WhatsApp' },
+  { key: 'smsNumber', label: 'SMS' },
   { key: 'email', label: 'Email' },
   { key: 'trainingCourse', label: 'Curso de Formação' },
   { key: 'institution', label: 'Instituição' },
   { key: 'entryYear', label: 'Ano de Ingresso' },
   { key: 'completionYear', label: 'Ano de Término' },
+  { key: 'trainingInProgress', label: 'Formação em Progresso' },
+  { key: 'registeredAt', label: 'Data de Registo' },
 ];
+
+const formatDate = (value) => (value ? toDisplayDate(String(value).slice(0, 10)) : '');
+const memberName = (member) => [member.firstName, member.surname].filter(Boolean).join(' ');
+
+/** Valor de cada coluna: é o mesmo na tabela e na exportação (toda a informação do funcionário). */
+const columnValue = {
+  staffCode: (member) => member.staffCode,
+  name: memberName,
+  fatherName: (member) => member.fatherName,
+  motherName: (member) => member.motherName,
+  gender: (member) => member.gender,
+  birthDate: (member) => formatDate(member.birthDate),
+  position: (member) => member.positionName,
+  documentType: (member) => member.documentTypeName,
+  biNumber: (member) => member.biNumber,
+  issueDate: (member) => formatDate(member.issueDate),
+  expiryDate: (member) => formatDate(member.expiryDate),
+  nuit: (member) => member.nuit,
+  country: (member) => member.country,
+  naturality: (member) => [member.birthDistrict, member.birthProvince].filter(Boolean).join(', '),
+  addressProvince: (member) => member.addressProvince,
+  addressDistrict: (member) => member.addressDistrict,
+  address: (member) => member.address,
+  phone: (member) => member.phone,
+  whatsappNumber: (member) => member.whatsappNumber,
+  smsNumber: (member) => member.smsNumber,
+  email: (member) => member.email,
+  trainingCourse: (member) => member.trainingCourse,
+  institution: (member) => member.institution,
+  entryYear: (member) => member.entryYear,
+  completionYear: (member) => member.completionYear,
+  trainingInProgress: (member) => (member.trainingInProgress ? 'Sim' : 'Não'),
+  registeredAt: (member) => formatDate(member.createdAt),
+};
 
 const personalDetails = [
   ['Código do Funcionário', (member) => member.staffCode],
@@ -123,18 +174,9 @@ export default function StaffManagementPage({
     [members, historyMode, searchTerm],
   );
 
-  const exportRows = useMemo(() => filteredMembers.map((member) => ({
-    staffCode: member.staffCode,
-    name: [member.firstName, member.surname].filter(Boolean).join(' '),
-    position: member.positionName,
-    gender: member.gender,
-    phone: member.phone,
-    email: member.email,
-    trainingCourse: member.trainingCourse,
-    institution: member.institution,
-    entryYear: member.entryYear,
-    completionYear: member.completionYear,
-  })), [filteredMembers]);
+  const exportRows = useMemo(() => filteredMembers.map((member) => Object.fromEntries(
+    exportColumns.map(({ key }) => [key, displayValue(columnValue[key](member))]),
+  )), [filteredMembers]);
 
   const toggleStatus = async (member) => {
     const active = !member.active;
@@ -211,34 +253,23 @@ export default function StaffManagementPage({
       <StandardTable
         audit="StaffMember"
         ariaLabel={`Funcionários de ${staffLabels[staffType]}`}
-        columns={[
-          { key: 'staffCode', label: 'Código' },
-          { key: 'name', label: 'Nome' },
-          { key: 'position', label: 'Cargo' },
-          { key: 'gender', label: 'Género' },
-          { key: 'phone', label: 'Telefone' },
-          { key: 'trainingCourse', label: 'Formação' },
-          { key: 'institution', label: 'Instituição' },
-          { key: 'actions', label: 'Ações', align: 'right' },
-        ]}
+        columns={[...exportColumns, { key: 'actions', label: 'Ações', align: 'right' }]}
         emptyMessage={`Não existem funcionários ${historyMode ? 'no histórico' : 'registados'} nesta área.`}
         loading={loading}
         rows={filteredMembers}
         renderRow={(member, rowNumber) => (
           <TableRow key={member.id} hover>
             <TableCell>{rowNumber}</TableCell>
-            <TableCell>{member.staffCode}</TableCell>
-            <TableCell>
-              <span className="cacoin-level-name">
-                <BriefcaseBusiness size={17} aria-hidden="true" />
-                {displayValue([member.firstName, member.surname].filter(Boolean).join(' '))}
-              </span>
-            </TableCell>
-            <TableCell>{displayValue(member.positionName)}</TableCell>
-            <TableCell>{displayValue(member.gender)}</TableCell>
-            <TableCell>{displayValue(member.phone)}</TableCell>
-            <TableCell>{displayValue(member.trainingCourse)}</TableCell>
-            <TableCell>{displayValue(member.institution)}</TableCell>
+            {exportColumns.map(({ key }) => (key === 'name' ? (
+              <TableCell key={key}>
+                <span className="cacoin-level-name">
+                  <BriefcaseBusiness size={17} aria-hidden="true" />
+                  {displayValue(memberName(member))}
+                </span>
+              </TableCell>
+            ) : (
+              <TableCell key={key}>{displayValue(columnValue[key](member))}</TableCell>
+            )))}
             <TableCell align="right">
               <Stack direction="row" justifyContent="flex-end" spacing={0.5}>
                 <Tooltip title="Ver dados do funcionário">

@@ -44,7 +44,8 @@ export const getFieldError = (field, value, form) => {
 
 export const maskBiNumber = (value) => {
   const digits = value.replace(/\D/g, '').slice(0, 12);
-  const letter = value.replace(/[^a-z]/gi, '').slice(-1);
+  // A letra do BI é sempre maiúscula (ex.: 110100123456B).
+  const letter = value.replace(/[^a-z]/gi, '').slice(-1).toUpperCase();
   return digits.length === 12 ? digits + letter : digits;
 };
 

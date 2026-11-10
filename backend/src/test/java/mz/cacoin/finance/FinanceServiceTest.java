@@ -1,6 +1,7 @@
 package mz.cacoin.finance;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -17,8 +18,10 @@ import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import mz.cacoin.staff.StaffMember;
 import mz.cacoin.staff.StaffRepository;
+import mz.cacoin.teacher.TeacherContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -35,6 +38,7 @@ class FinanceServiceTest {
   private FinanceService service;
   private StaffMember member;
   private SalaryRegistration registration;
+  private static final String NIB = "000800011234567890155";
   private final YearMonth now = YearMonth.now();
 
   @BeforeEach
@@ -263,10 +267,13 @@ class FinanceServiceTest {
   @Test
   void registrationUsesTheTypeSalaryByDefaultAndRejectsDuplicates() {
     SalaryRegistrationRequest request =
-        new SalaryRegistrationRequest(5L, 1L, 1L, null, null, null, " nota ");
+        new SalaryRegistrationRequest(5L, 1L, 1L, null, null, null, " nota ", " BCI ", "0008 0001 1234 5678 9015 5");
 
     SalaryRegistrationResponse created = service.createRegistration(request);
 
+    assertEquals("BCI", created.bankName());
+    assertEquals(NIB, created.nib());
+    assertEquals("12345678901", created.account());
     assertEquals(new BigDecimal("12000.00"), created.salary());
     assertEquals("nota", created.observation());
     assertEquals("PENDING", created.status());
@@ -275,6 +282,71 @@ class FinanceServiceTest {
     when(registrations.existsByStaffId(5L)).thenReturn(true);
     assertEquals(409, assertThrows(ResponseStatusException.class,
         () -> service.createRegistration(request)).getStatusCode().value());
+  }
+
+  @Test
+  void registrationRequiresTheBankAndAValidNib() {
+    for (String[] invalid : new String[][] {
+        {"", NIB}, {"BCI", ""}, {"BCI", "123"}, {"BCI", NIB + "1"}, {"BCI", "000000000000000000000"},
+        {"BCI", "000012345678901234567"}}) {
+      assertEquals(400, assertThrows(ResponseStatusException.class,
+          () -> service.createRegistration(new SalaryRegistrationRequest(
+              5L, 1L, 1L, null, null, null, null, invalid[0], invalid[1]))).getStatusCode().value());
+    }
+    verify(registrations, never()).save(any(SalaryRegistration.class));
+  }
+
+  @Test
+  void registrationPositionMustBeTheEmployeesPosition() {
+    member.setPositionId(2L);
+
+    assertEquals(400, assertThrows(ResponseStatusException.class,
+        () -> service.createRegistration(new SalaryRegistrationRequest(
+            5L, 1L, 1L, null, null, null, null, "BCI", NIB))).getStatusCode().value());
+
+    member.setPositionId(1L);
+    assertEquals("Secretária", service.createRegistration(new SalaryRegistrationRequest(
+        5L, 1L, 1L, null, null, null, null, "BCI", NIB)).positionName());
+  }
+
+  @Test
+  void onlyTheEmployeeHimselfCanConfirmReceipt() {
+    SalaryPayment paid = payment(now, "PROCESSING", "12000.00", "0", "0");
+    paid.setId(9L);
+    when(payments.findById(9L)).thenReturn(Optional.of(paid));
+
+    // Administração (sem âmbito de funcionário) não confirma por ele.
+    assertEquals(403, assertThrows(ResponseStatusException.class,
+        () -> service.confirmReceipt(9L)).getStatusCode().value());
+
+    TeacherContext.set(new TeacherContext.Scope(77L, Set.of(), "other"));
+    try {
+      assertEquals(403, assertThrows(ResponseStatusException.class,
+          () -> service.confirmReceipt(9L)).getStatusCode().value());
+    } finally {
+      TeacherContext.clear();
+    }
+    assertEquals(null, paid.getConfirmedAt());
+  }
+
+  @Test
+  void theEmployeeConfirmsReceiptOnlyOnce() {
+    SalaryPayment paid = payment(now, "PROCESSING", "12000.00", "0", "0");
+    paid.setId(9L);
+    when(payments.findById(9L)).thenReturn(Optional.of(paid));
+
+    TeacherContext.set(new TeacherContext.Scope(5L, Set.of(), "other"));
+    try {
+      SalaryPaymentResponse confirmed = service.confirmReceipt(9L);
+
+      assertNotNull(confirmed.confirmedAt());
+      assertEquals("Marta Cossa", confirmed.confirmedByName());
+      assertEquals(5L, paid.getConfirmedById());
+      assertEquals(409, assertThrows(ResponseStatusException.class,
+          () -> service.confirmReceipt(9L)).getStatusCode().value());
+    } finally {
+      TeacherContext.clear();
+    }
   }
 
   @Test

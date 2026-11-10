@@ -45,12 +45,16 @@ public class FinanceService {
 
   @Transactional(readOnly = true)
   public List<FinanceEmployeeResponse> employees() {
+    Map<Long, String> positionNames = positions.findAll().stream()
+        .collect(Collectors.toMap(FinancePosition::getId, FinancePosition::getName));
     return staff.findAll().stream()
         .filter(StaffMember::isActive)
         .sorted(Comparator.comparing(StaffCodes::of))
         .map(member -> new FinanceEmployeeResponse(
             member.getId(), StaffCodes.of(member), StaffCodes.fullName(member),
-            member.getPhone(), member.getBiNumber(), member.getNuit()))
+            member.getPhone(), member.getBiNumber(), member.getNuit(),
+            member.getPositionId(),
+            member.getPositionId() == null ? null : positionNames.get(member.getPositionId())))
         .toList();
   }
 
@@ -158,6 +162,28 @@ public class FinanceService {
       throw badRequest("Só é possível liquidar meses anteriores ao mês actual");
     }
     return pay(request, month, LIQUIDATION);
+  }
+
+  /** O próprio funcionário confirma que recebeu o pagamento. */
+  @Transactional
+  public SalaryPaymentResponse confirmReceipt(Long id) {
+    if (!TeacherContext.active()) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "Só o próprio funcionário pode confirmar o recebimento");
+    }
+    SalaryPayment payment = payments.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(
+            HttpStatus.NOT_FOUND, "O pagamento não foi encontrado"));
+    TeacherContext.requireSelf(payment.getStaff().getId());
+    if (payment.getConfirmedAt() != null) {
+      throw new ResponseStatusException(
+          HttpStatus.CONFLICT, "O recebimento já foi confirmado");
+    }
+    payment.setConfirmedAt(Instant.now());
+    payment.setConfirmedById(payment.getStaff().getId());
+    SalaryPayment saved = payments.save(payment);
+    return toResponse(saved,
+        registrations.findByStaffId(saved.getStaff().getId()).orElse(null), SystemDate.month());
   }
 
   private SalaryPaymentResponse pay(SalaryPaymentRequest request, YearMonth month, String kind) {
@@ -357,6 +383,22 @@ public class FinanceService {
     }
     FinancePosition position = positions.findById(request.positionId())
         .orElseThrow(() -> badRequest("O cargo selecionado não existe"));
+    StaffMember owner = registration.getStaff();
+    if (owner != null && owner.getPositionId() != null
+        && !owner.getPositionId().equals(position.getId())) {
+      throw badRequest("O cargo deve ser o cargo do funcionário");
+    }
+    String bankName = request.bankName() == null ? "" : request.bankName().trim();
+    if (bankName.isEmpty()) {
+      throw badRequest("Indique o banco");
+    }
+    if (bankName.length() > 120) {
+      throw badRequest("O nome do banco pode ter até 120 caracteres");
+    }
+    String nibError = Nib.validate(request.nib());
+    if (nibError != null) {
+      throw badRequest(nibError);
+    }
     FinanceSalaryType salaryType = salaryTypes.findById(request.salaryTypeId())
         .orElseThrow(() -> badRequest("O tipo de salário selecionado não existe"));
     BigDecimal salary = request.salary() == null ? salaryType.getAmount() : request.salary();
@@ -375,6 +417,8 @@ public class FinanceService {
     registration.setBonusType(bonusType);
     registration.setBonus(bonus);
     registration.setObservation(text(request.observation()));
+    registration.setBankName(bankName);
+    registration.setNib(Nib.clean(request.nib()));
   }
 
   private void validateAmount(BigDecimal amount, String label) {
@@ -433,7 +477,10 @@ public class FinanceService {
         registrationDate(registration),
         registration.getObservation(),
         currentStatus(history, now),
-        last);
+        last,
+        registration.getBankName(),
+        Nib.account(registration.getNib()),
+        registration.getNib());
   }
 
   private SalaryPaymentResponse toResponse(
@@ -459,7 +506,13 @@ public class FinanceService {
         payment.getBonusAmount(),
         payment.getDiscountedBalance(),
         payment.getObservation(),
-        LocalDateTime.ofInstant(payment.getProcessedAt(), ZoneId.systemDefault()));
+        LocalDateTime.ofInstant(payment.getProcessedAt(), ZoneId.systemDefault()),
+        registration == null ? null : registration.getBankName(),
+        registration == null ? null : Nib.account(registration.getNib()),
+        registration == null ? null : registration.getNib(),
+        payment.getConfirmedAt() == null
+            ? null : LocalDateTime.ofInstant(payment.getConfirmedAt(), ZoneId.systemDefault()),
+        payment.getConfirmedAt() == null ? null : StaffCodes.fullName(member));
   }
 
   private FinanceReportRowResponse reportRow(

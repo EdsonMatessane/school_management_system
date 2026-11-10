@@ -19,25 +19,25 @@ export default function EmployeePicker({ employees, value, onChange, disabled = 
         size="small"
         label="Nome"
         value={value ? displayText(value.name ?? value.staffName) : ''}
-        slotProps={{ input: { readOnly: true } }}
+        disabled
       />
       <TextField
         size="small"
         label="Telefone"
         value={value ? displayText(value.phone) : ''}
-        slotProps={{ input: { readOnly: true } }}
+        disabled
       />
       <TextField
         size="small"
         label="BI"
         value={value ? displayText(value.biNumber) : ''}
-        slotProps={{ input: { readOnly: true } }}
+        disabled
       />
       <TextField
         size="small"
         label="NUIT"
         value={value ? displayText(value.nuit) : ''}
-        slotProps={{ input: { readOnly: true } }}
+        disabled
       />
     </>
   );
