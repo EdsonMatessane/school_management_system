@@ -1,6 +1,6 @@
 import { isHrProfileSection } from './components/teacherNav';
 import { getPortalKind, setPersonalScope, setTeacherMode } from './utils/teacherMode';
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Layout from './components/Layout';
 import CoursesManagement from './pages/courses/courses/CoursesManagement';
 import CategoriesManagement from './pages/courses/categories/CategoriesManagement';
@@ -26,344 +26,108 @@ import TeacherNotificationsPage from './pages/teacher/TeacherNotificationsPage';
 import TeacherProfilePage from './pages/teacher/TeacherProfilePage';
 import TeacherStudentsPage from './pages/teacher/TeacherStudentsPage';
 import './styles.css';
-
-const availableThemes = ['blue', 'green', 'purple', 'dark'];
-const themeStorageKey = 'cacoin.theme';
-const logoStorageKey = 'cacoin.logo';
-
-const StudentLookUpSearch = lazy(
-  () => import('./pages/lookup/StudentLookUpSearch'),
-);
-const ModulesManagement = lazy(
-  () => import('./pages/modules/modules/ModulesManagement'),
-);
-const StudentEnrollmentPage = lazy(
-  () => import('./pages/students/StudentEnrollmentPage'),
-);
-const StudentManagementPage = lazy(
-  () => import('./pages/students/StudentManagementPage'),
-);
-const StudentFeesManagement = lazy(
-  () => import('./pages/students/StudentFeesManagement'),
-);
-const StudentEnrollmentPayments = lazy(
-  () => import('./pages/students/StudentEnrollmentPayments'),
-);
-const StudentTestCreatePage = lazy(
-  () => import('./pages/students/tests/StudentTestCreatePage'),
-);
-const StudentTestManagementPage = lazy(
-  () => import('./pages/students/tests/StudentTestManagementPage'),
-);
-const StudentExamCreatePage = lazy(
-  () => import('./pages/students/exams/StudentExamCreatePage'),
-);
-const StudentExamManagementPage = lazy(
-  () => import('./pages/students/exams/StudentExamManagementPage'),
-);
-const TestDashboardPage = lazy(() => import('./pages/tests/TestDashboardPage'));
-const TestRegistrationPage = lazy(
-  () => import('./pages/tests/TestRegistrationPage'),
-);
-const TestSettingsManagement = lazy(
-  () => import('./pages/settings/tests/TestSettingsManagement'),
-);
-const ExamDashboardPage = lazy(() => import('./pages/exams/ExamDashboardPage'));
-const ExamRegistrationPage = lazy(
-  () => import('./pages/exams/ExamRegistrationPage'),
-);
-const ExamSettingsManagement = lazy(
-  () => import('./pages/settings/exams/ExamSettingsManagement'),
-);
-const UniformDashboardPage = lazy(
-  () => import('./pages/uniforms/UniformDashboardPage'),
-);
-const UniformOrderPage = lazy(
-  () => import('./pages/uniforms/UniformOrderPage'),
-);
-const UniformSettingsManagement = lazy(
-  () => import('./pages/settings/uniforms/UniformSettingsManagement'),
-);
-const GraduationDashboardPage = lazy(
-  () => import('./pages/graduations/GraduationDashboardPage'),
-);
-const GraduationRegistrationPage = lazy(
-  () => import('./pages/graduations/GraduationRegistrationPage'),
-);
-const GraduationParticipantsPage = lazy(
-  () => import('./pages/graduations/GraduationParticipantsPage'),
-);
-const GraduationGraduatesPage = lazy(
-  () => import('./pages/graduations/GraduationGraduatesPage'),
-);
-const GraduationSettingsManagement = lazy(
-  () => import('./pages/settings/graduations/GraduationSettingsManagement'),
-);
-const SuspensionDashboardPage = lazy(
-  () => import('./pages/suspensions/SuspensionDashboardPage'),
-);
-const SuspensionRegistrationPage = lazy(
-  () => import('./pages/suspensions/SuspensionRegistrationPage'),
-);
-const SuspensionSettingsManagement = lazy(
-  () => import('./pages/settings/suspensions/SuspensionSettingsManagement'),
-);
-const AttendanceDashboardPage = lazy(
-  () => import('./pages/attendances/AttendanceDashboardPage'),
-);
-const AttendanceRegisterPage = lazy(
-  () => import('./pages/attendances/AttendanceRegisterPage'),
-);
-const AttendanceTablesPage = lazy(
-  () => import('./pages/attendances/AttendanceTablesPage'),
-);
-const AssessmentNewRecordPage = lazy(
-  () => import('./pages/assessments/AssessmentNewRecordPage'),
-);
-const AssessmentPendingPage = lazy(
-  () => import('./pages/assessments/AssessmentPendingPage'),
-);
-const AssessmentGradesPage = lazy(
-  () => import('./pages/assessments/AssessmentGradesPage'),
-);
-const PautaDashboardPage = lazy(
-  () => import('./pages/pautas/PautaDashboardPage'),
-);
-const PautaNewPage = lazy(() => import('./pages/pautas/PautaNewPage'));
-const PautaListPage = lazy(() => import('./pages/pautas/PautaListPage'));
-const PautaSettingsManagement = lazy(
-  () => import('./pages/settings/pautas/PautaSettingsManagement'),
-);
-const StaffDocumentTypesPage = lazy(
-  () => import('./pages/staff/documents/StaffDocumentTypesPage'),
-);
-const StaffExpirationPage = lazy(
-  () => import('./pages/staff/documents/StaffExpirationPage'),
-);
-const FinanceDashboardPage = lazy(
-  () => import('./pages/finance/FinanceDashboardPage'),
-);
-const SalaryRegistrationPage = lazy(
-  () => import('./pages/finance/SalaryRegistrationPage'),
-);
-const SalaryPaymentsPage = lazy(
-  () => import('./pages/finance/SalaryPaymentsPage'),
-);
-const SalaryPendingPage = lazy(
-  () => import('./pages/finance/SalaryPendingPage'),
-);
-const SalaryDebtsPage = lazy(() => import('./pages/finance/SalaryDebtsPage'));
-const SalaryReportsPage = lazy(
-  () => import('./pages/finance/SalaryReportsPage'),
-);
-const FinanceSettingsManagement = lazy(
-  () => import('./pages/settings/finance/FinanceSettingsManagement'),
-);
-const PositionSettingsManagement = lazy(
-  () => import('./pages/settings/finance/PositionSettingsManagement'),
-);
-const OnlineClassesPage = lazy(
-  () => import('./pages/onlineclasses/OnlineClassesPage'),
-);
-const OnlineClassesDashboardPage = lazy(
-  () => import('./pages/onlineclasses/OnlineClassesDashboardPage'),
-);
-const OnlineClassPlatformPage = lazy(
-  () => import('./pages/onlineclasses/OnlineClassPlatformPage'),
-);
-const OnlineClassesRegistrationPage = lazy(
-  () => import('./pages/onlineclasses/OnlineClassesRegistrationPage'),
-);
-const OnlineClassesSettingsManagement = lazy(
-  () => import('./pages/settings/onlineclasses/OnlineClassesSettingsManagement'),
-);
-const OnlineAttendanceSettingsManagement = lazy(
-  () => import('./pages/settings/onlineclasses/OnlineAttendanceSettingsManagement'),
-);
-const LeaveDashboardPage = lazy(() => import('./pages/leaves/LeaveDashboardPage'));
-const LeaveRequestPage = lazy(() => import('./pages/leaves/LeaveRequestPage'));
-const PartitionSettingsManagement = lazy(
-  () => import('./pages/settings/partitions/PartitionSettingsManagement'),
-);
-const FineSettingsManagement = lazy(
-  () => import('./pages/settings/fines/FineSettingsManagement'),
-);
-const LeaveSettingsManagement = lazy(
-  () => import('./pages/settings/leaves/LeaveSettingsManagement'),
-);
-const MobileMoneySettingsManagement = lazy(
-  () => import('./pages/settings/mobilemoney/MobileMoneySettingsManagement'),
-);
-const MobileMoneyPayPage = lazy(() => import('./pages/mobilemoney/MobileMoneyPayPage'));
-const MobileMoneyTransactionsPage = lazy(
-  () => import('./pages/mobilemoney/MobileMoneyTransactionsPage'),
-);
-const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
-const UserAccountsPage = lazy(() => import('./pages/users/UserAccountsPage'));
-const UserDashboardPage = lazy(() => import('./pages/users/UserDashboardPage'));
-const UserLogsManagement = lazy(
-  () => import('./pages/settings/users/UserLogsManagement'),
-);
-const UserSettingsManagement = lazy(
-  () => import('./pages/settings/users/UserSettingsManagement'),
-);
-const StudentRequestDashboardPage = lazy(
-  () => import('./pages/requests/StudentRequestDashboardPage'),
-);
-const StudentRequestPage = lazy(() => import('./pages/requests/StudentRequestPage'));
-const RequestSettingsManagement = lazy(
-  () => import('./pages/settings/requests/RequestSettingsManagement'),
-);
-const ExpensesDashboardPage = lazy(
-  () => import('./pages/expenses/ExpensesDashboardPage'),
-);
-const ExpenseRecordsPage = lazy(() => import('./pages/expenses/ExpenseRecordsPage'));
-const ReturnRequestPage = lazy(() => import('./pages/expenses/ReturnRequestPage'));
-const ExpenseSettingsManagement = lazy(
-  () => import('./pages/settings/expenses/ExpenseSettingsManagement'),
-);
-const NotificationDashboardPage = lazy(
-  () => import('./pages/notifications/NotificationDashboardPage'),
-);
-const NotificationMessagesPage = lazy(
-  () => import('./pages/notifications/NotificationMessagesPage'),
-);
-const NotificationSettingsManagement = lazy(
-  () => import('./pages/settings/notifications/NotificationSettingsManagement'),
-);
-const StaffAttendanceDashboardPage = lazy(
-  () => import('./pages/staffattendances/StaffAttendanceDashboardPage'),
-);
-const StaffAttendanceRegisterPage = lazy(
-  () => import('./pages/staffattendances/StaffAttendanceRegisterPage'),
-);
-const StaffAttendanceTablesPage = lazy(
-  () => import('./pages/staffattendances/StaffAttendanceTablesPage'),
-);
-const staffEnrollmentPages = {
-  hr: lazy(() => import('./pages/staff/hr/HrEnrollmentPage')),
-  teachers: lazy(() => import('./pages/staff/teachers/TeacherEnrollmentPage')),
-  other: lazy(() => import('./pages/staff/other/OtherEnrollmentPage')),
-};
-const staffManagementPages = {
-  hr: lazy(() => import('./pages/staff/hr/HrManagementPage')),
-  teachers: lazy(() => import('./pages/staff/teachers/TeacherManagementPage')),
-  other: lazy(() => import('./pages/staff/other/OtherManagementPage')),
-};
-
-const studentSectionLabels = {
-  'student-enroll': 'Inscrever',
-  'student-manage': 'Gerir',
-  'student-history': 'Histórico',
-  'student-enrollment-pending': 'Inscrição: Pendente',
-  'student-enrollment-paid': 'Inscrição: Pago',
-  'student-monthly-pending': 'Mensalidades: Pendente',
-  'student-monthly-overdue': 'Mensalidades: Em Atraso',
-  'student-monthly-paid': 'Mensalidades: Pago',
-};
-const studentFeeViews = {
-  'student-monthly-pending': { feeType: 'MONTHLY', status: 'PENDING' },
-  'student-monthly-overdue': { feeType: 'MONTHLY', status: 'OVERDUE' },
-  'student-monthly-paid': { feeType: 'MONTHLY', status: 'PAID' },
-};
-
-const staffTypes = {
-  hr: 'Recursos Humanos',
-  teachers: 'Professores',
-  other: 'Outros Funcionários',
-};
-
-const staffSection = (section) => {
-  const [, type, action] = section.split('-');
-  return staffTypes[type] && ['enroll', 'manage', 'history'].includes(action)
-    ? { type, action }
-    : null;
-};
-const testRegistrationSection = (section) => {
-  const match = section.match(
-    /^student-tests-(normal|recovery|special)-(enroll|list)$/,
-  );
-  return match
-    ? {
-        testType: match[1].toUpperCase(),
-        mode: match[2] === 'enroll' ? 'enroll' : 'list',
-      }
-    : null;
-};
-
-const examRegistrationSection = (section) => {
-  const match = section.match(
-    /^student-exams-(normal|recurrence|special)-(enroll|list)$/,
-  );
-  return match
-    ? {
-        examType: match[1].toUpperCase(),
-        mode: match[2] === 'enroll' ? 'enroll' : 'list',
-      }
-    : null;
-};
-
-const uniformOrderSection = (section) => {
-  const match = section.match(/^student-uniforms-(request|list)$/);
-  return match ? { mode: match[1] } : null;
-};
-
-const graduationRegistrationSection = (section) => {
-  const match = section.match(/^student-graduations-(enroll|enrolled)$/);
-  return match ? { mode: match[1] === 'enroll' ? 'enroll' : 'list' } : null;
-};
-
-const suspensionSection = (section) => {
-  const match = section.match(/^student-suspensions-(register|list)$/);
-  return match ? { mode: match[1] } : null;
-};
-
-const attendanceTableSection = (section) => {
-  const match = section.match(
-    /^student-attendances-(list|absences|justified|excesses)$/,
-  );
-  return match ? { mode: match[1] } : null;
-};
-
-const financePaymentModes = {
-  'finance-processing-process': 'process',
-  'finance-processing-list': 'processed',
-  'finance-advance-advance': 'advance',
-  'finance-advance-list': 'advanced',
-  'finance-debts-settle': 'settle',
-};
-
-const financeRegistrationSection = (section) => {
-  const match = section.match(/^finance-registration-(register|list)$/);
-  return match ? { mode: match[1] } : null;
-};
-
-const staffAttendanceSection = (section) => {
-  const match = section.match(
-    /^staff-(hr|teachers|other)-attendances-(dashboard|register|list|absences|justified|excesses)$/,
-  );
-  if (match) return { type: match[1], page: match[2] };
-  const own = section.match(/^profile-attendances-(dashboard|list|absences|justified|excesses)$/);
-  return own ? { type: 'hr', page: own[1] } : null;
-};
-
-const expenseRecordSections = {
-  'expenses-new': { kind: 'expenses', mode: 'new' },
-  'expenses-list': { kind: 'expenses', mode: 'list' },
-  'expenses-purchases-new': { kind: 'purchases', mode: 'new' },
-  'expenses-purchases-list': { kind: 'purchases', mode: 'list' },
-  'expenses-returns-pending': { kind: 'returns', mode: 'list', view: 'pending' },
-  'expenses-returns-list': { kind: 'returns', mode: 'list', view: 'done' },
-  'expenses-sales-new': { kind: 'sales', mode: 'new' },
-  'expenses-sales-list': { kind: 'sales', mode: 'list' },
-};
-
-const schoolSectionLabels = {
-  'school-info': 'Escola',
-  'school-customization': 'Customização',
-  'school-report-header': 'Relatórios: Cabeçalho',
-  'school-report-footer': 'Relatórios: Rodapé',
-};
+import {
+  StudentLookUpSearch,
+  ModulesManagement,
+  StudentEnrollmentPage,
+  StudentManagementPage,
+  StudentFeesManagement,
+  StudentEnrollmentPayments,
+  StudentTestCreatePage,
+  StudentTestManagementPage,
+  StudentExamCreatePage,
+  StudentExamManagementPage,
+  TestDashboardPage,
+  TestRegistrationPage,
+  TestSettingsManagement,
+  ExamDashboardPage,
+  ExamRegistrationPage,
+  ExamSettingsManagement,
+  UniformDashboardPage,
+  UniformOrderPage,
+  UniformSettingsManagement,
+  GraduationDashboardPage,
+  GraduationRegistrationPage,
+  GraduationParticipantsPage,
+  GraduationGraduatesPage,
+  GraduationSettingsManagement,
+  SuspensionDashboardPage,
+  SuspensionRegistrationPage,
+  SuspensionSettingsManagement,
+  AttendanceDashboardPage,
+  AttendanceRegisterPage,
+  AttendanceTablesPage,
+  AssessmentNewRecordPage,
+  AssessmentPendingPage,
+  AssessmentGradesPage,
+  PautaDashboardPage,
+  PautaNewPage,
+  PautaListPage,
+  PautaSettingsManagement,
+  StaffDocumentTypesPage,
+  StaffExpirationPage,
+  FinanceDashboardPage,
+  SalaryRegistrationPage,
+  SalaryPaymentsPage,
+  SalaryPendingPage,
+  SalaryDebtsPage,
+  SalaryReportsPage,
+  FinanceSettingsManagement,
+  PositionSettingsManagement,
+  OnlineClassesPage,
+  OnlineClassesDashboardPage,
+  OnlineClassPlatformPage,
+  OnlineClassesRegistrationPage,
+  OnlineClassesSettingsManagement,
+  OnlineAttendanceSettingsManagement,
+  LeaveDashboardPage,
+  LeaveRequestPage,
+  PartitionSettingsManagement,
+  FineSettingsManagement,
+  LeaveSettingsManagement,
+  MobileMoneySettingsManagement,
+  MobileMoneyPayPage,
+  MobileMoneyTransactionsPage,
+  DashboardPage,
+  UserAccountsPage,
+  UserDashboardPage,
+  UserLogsManagement,
+  UserSettingsManagement,
+  StudentRequestDashboardPage,
+  StudentRequestPage,
+  RequestSettingsManagement,
+  ExpensesDashboardPage,
+  ExpenseRecordsPage,
+  ReturnRequestPage,
+  ExpenseSettingsManagement,
+  NotificationDashboardPage,
+  NotificationMessagesPage,
+  NotificationSettingsManagement,
+  StaffAttendanceDashboardPage,
+  StaffAttendanceRegisterPage,
+  StaffAttendanceTablesPage,
+} from './lazyPages';
+import {
+  availableThemes,
+  themeStorageKey,
+  logoStorageKey,
+  staffEnrollmentPages,
+  staffManagementPages,
+  studentSectionLabels,
+  studentFeeViews,
+  staffSection,
+  testRegistrationSection,
+  examRegistrationSection,
+  uniformOrderSection,
+  graduationRegistrationSection,
+  suspensionSection,
+  attendanceTableSection,
+  financePaymentModes,
+  financeRegistrationSection,
+  staffAttendanceSection,
+  expenseRecordSections,
+  schoolSectionLabels,
+} from './appSections';
 
 export default function App({ teacher = false, hr = false }) {
   const [activeSection, setActiveSection] = useState(teacher || hr ? 'teacher-info' : 'dashboard');

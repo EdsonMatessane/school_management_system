@@ -1,2 +1,0 @@
-ALTER TABLE user_logs
-    ADD COLUMN IF NOT EXISTS entity_ref VARCHAR(160);

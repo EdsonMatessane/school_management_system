@@ -1,2 +1,0 @@
-ALTER TABLE courses
-    ALTER COLUMN name TYPE TEXT;

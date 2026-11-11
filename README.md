@@ -110,7 +110,7 @@ quando um valor muda).
 ## Estrutura
 
 ```text
-backend/    API Spring Boot (src/main/java/mz/cacoin/<módulo>, scripts SQL em db/manual)
+backend/    API Spring Boot (src/main/java/mz/cacoin/<módulo>, o esquema da base de dados é gerido pelo Hibernate, `ddl-auto: update`)
 frontend/   React + Vite (src/pages/<módulo>)
 regra-da-estrutura-da-base-de-dados.txt
 ```
@@ -204,12 +204,9 @@ Trocar de instituição no login recarrega a página sem voltar a mostrar a pág
 
 As configurações em `/api/settings` mantêm preferências do calendário escolar,
 data, hora, idioma, fuso horário e moeda. Os antigos campos de dados da
-instituição não fazem parte destas configurações. Numa base de dados existente, aplique
-`backend/src/main/resources/db/manual/20261016_remove_institution_settings.sql`
-para remover também as respetivas colunas.
+instituição não fazem parte destas configurações.
 As obrigatoriedades dos campos da inscrição de estudantes são configuradas em
-**Configurações > Formulário**. Numa base de dados existente, aplique
-`backend/src/main/resources/db/manual/20261016_add_required_student_fields.sql`.
+**Configurações > Formulário**.
 
 ## Níveis
 
@@ -240,13 +237,7 @@ curso; o número sequencial é atribuído automaticamente na criação. Cada mó
 guarda um nome e detalhes formatados. A página resume o número total de módulos
 por curso, permite abrir a lista de módulos desse curso e consultar os detalhes
 formatados de cada módulo. Os detalhes completos são obtidos por
-`GET /api/modules/{id}`. Antes de iniciar a aplicação numa base existente,
-aplique primeiro
-`backend/src/main/resources/db/manual/20261016_add_module_name_and_details.sql`
-e depois
-`backend/src/main/resources/db/manual/20261016_add_course_module_sequence.sql`.
-Estas migrações adicionam os campos e preservam os módulos existentes,
-continuando a sequência depois do maior número já atribuído.
+`GET /api/modules/{id}`.
 
 ## Disciplinas
 
@@ -254,13 +245,7 @@ As disciplinas são disponibilizadas em `/api/disciplines`. Cada registo pertenc
 a um curso; o seu número é atribuído automaticamente e sequencialmente por
 curso. Cada registo guarda apenas o nome da disciplina, normalizado para
 maiúsculas e sem acentos, único dentro do curso. A página resume o número total
-por curso e permite abrir a respetiva lista numerada. Antes de iniciar a
-aplicação numa base existente, aplique, por esta ordem:
-`backend/src/main/resources/db/manual/20261016_add_module_name_and_details.sql`,
-`backend/src/main/resources/db/manual/20261016_add_course_module_sequence.sql`
-e
-`backend/src/main/resources/db/manual/20261016_add_course_discipline_sequence.sql`.
-Estas migrações preservam os registos existentes. Módulos e disciplinas podem
+por curso e permite abrir a respetiva lista numerada. Módulos e disciplinas podem
 coexistir independentemente no mesmo curso.
 
 ## Modalidades
@@ -276,8 +261,6 @@ O formulário pede o número de meses; a interface apresenta anos e meses (por
 exemplo, 12 meses como “1 ano”, 24 meses como “2 anos” e 13 meses como
 “1 ano e 1 mês”).
 Para cursos existentes, a duração permanece vazia até ser preenchida na edição.
-Antes de iniciar a aplicação numa base existente, aplique
-`backend/src/main/resources/db/manual/20261016_add_course_duration.sql`.
 
 ## Inscrição de estudantes
 
@@ -293,13 +276,8 @@ ser apagado enquanto tiver inscrições.
 Todos os campos começam opcionais. Se forem preenchidos, o formulário valida o
 formato do BI, NUIT, telefone moçambicano, email e datas. O estudante pode ser
 guardado antes de escolher um curso; a inscrição e a cópia dos dados do curso
-são criadas quando um curso é selecionado. Numa base existente, aplique
-`backend/src/main/resources/db/manual/20261016_create_student_enrollments.sql`
-e depois
-`backend/src/main/resources/db/manual/20261016_allow_incomplete_student_registration.sql`;
-aplique também
-`backend/src/main/resources/db/manual/20261016_add_student_status_and_created_at.sql`
-para adicionar o estado ativo e a data/hora de inscrição dos estudantes.
+são criadas quando um curso é selecionado. Os estudantes têm
+estado ativo e data/hora de inscrição.
 O estado pode ser alterado em `/api/students/{id}/activation`.
 
 ## Mensalidades
@@ -322,10 +300,7 @@ decimais `.`, duas casas e um espaço antes da moeda). No frontend use
 `src/components/Money.jsx` para mostrar valores e `formatMoney` de
 `src/utils/money.js` quando precisar de texto (recibos, pesquisa e exportações
 PDF/Excel/CSV/XML). No backend use `mz.cacoin.common.Money`. Na base de dados os valores
-continuam `NUMERIC` com duas casas decimais; aplique
-`backend/src/main/resources/db/manual/20261017_add_money_format_function.sql` para
-ter a função `format_money(valor)` (por exemplo, `SELECT format_money(3000);` devolve
-`3,000.00 MZN`).
+continuam `NUMERIC` com duas casas decimais.
 
 ## Formato de datas
 
@@ -348,7 +323,7 @@ A coluna **Registo** mostra um código ou nome legível (por exemplo o código d
 Ao **criar** ou **apagar** não há alterações a mostrar: só se indica a acção, a entidade e o
 registo. Ao **editar**, a coluna **Alterações** mostra apenas os campos alterados, um por linha:
 `Campo: "informação antiga" -> "informação nova"`. O registo guarda-se na coluna
-`user_logs.entity_ref`; aplique `backend/src/main/resources/db/manual/20261031_add_user_log_entity_ref.sql`.
+`user_logs.entity_ref`.
 
 ## Portal do professor: notificações e tarefas
 
@@ -361,8 +336,7 @@ comenta.
 
 Cada registo de notas é independente: tem a sua própria lista de estudantes e nunca inclui
 estudantes de registos anteriores do mesmo curso e ano. Em *Notas* cada registo é um separador
-(`Registo No.1 - 2026`). Aplique os scripts `20261101_allow_multiple_assessment_sheets.sql` e
-`20261101_create_assessment_sheet_students.sql` em `backend/src/main/resources/db/manual/`.
+(`Registo No.1 - 2026`).
 
 ## Pagamentos: Período
 
@@ -372,8 +346,7 @@ ficarem em atraso, o ajuste quando a data cai em fim de semana ou feriado (mante
 útil ou dia útil anterior, usando os feriados activos de Configurações) e a regra da primeira
 mensalidade. A página mostra uma pré-visualização dos próximos meses e o botão **Aplicar às
 mensalidades em aberto** recalcula as datas limite das mensalidades ainda não pagas. Os valores
-por omissão mantêm o comportamento anterior (dia 10). Numa base existente, aplique
-`backend/src/main/resources/db/manual/20261017_create_payment_period_settings.sql`.
+por omissão mantêm o comportamento anterior (dia 10).
 
 ## Testes
 
@@ -383,15 +356,12 @@ até 20, com no máximo duas casas decimais). Em **Gerir** adicionam-se as notas
 escolhido por autocomplete entre os activos inscritos no curso do teste, a nota não pode ser
 superior à nota máxima e "-" regista o estudante que não fez o teste; há também observações.
 Concluir um teste move-o para o **Histórico** (só leitura) e reabri-lo devolve-o a Gerir.
-Um módulo, disciplina, curso ou estudante com testes ou notas não pode ser apagado. Numa base
-existente, aplique `backend/src/main/resources/db/manual/20261018_create_student_tests.sql`.
+Um módulo, disciplina, curso ou estudante com testes ou notas não pode ser apagado.
 Em **Estudantes > Testes > Inscrição**, cada inscrição permite consultar e exportar o recibo e
 registar pagamentos parciais. A listagem pode ser exportada em PDF, Excel, CSV ou XML; os recibos
 também permitem exportação nesses formatos e incluem o histórico de pagamentos.
 As taxas de inscrição em **Configurações > Testes > Definição** são mantidas por tipo, com edição,
-activação/desactivação e remoção. Se `test_settings` ainda não existir, aplique
-`backend/src/main/resources/db/manual/20261018_create_test_settings.sql`; para uma tabela já
-existente, aplique `backend/src/main/resources/db/manual/20261018_add_test_fee_status.sql`.
+activação/desactivação e remoção.
 
 ### Cobrança de taxas em testes e exames
 
@@ -400,9 +370,7 @@ Em **Configurações > Testes > Definição** e **Configurações > Exames > Def
 omissão para todos os casos) ou **Cobrar** (com o valor da taxa). Em "Sem taxa de cobrança" a
 inscrição é criada sem processo de pagamento (estado `FREE`, valor 0, sem recibo nem pagamentos);
 em "Cobrar" mantém-se o processo normal (valor, pagamentos parciais, recibo, Mobile Money).
-O botão de apagar passa a **Repor sem taxa**. Numa base existente, aplique
-`backend/src/main/resources/db/manual/20261030_tests_exams_optional_fee.sql` (muda os valores
-por omissão e permite `amount = 0` nas inscrições).
+O botão de apagar passa a **Repor sem taxa**.
 
 ## Exames
 
@@ -414,7 +382,6 @@ no curso do exame, a nota não pode ser superior à nota máxima e "-" regista o
 exame; há também observações. O lançamento de notas respeita o período definido em **Configurações >
 Exames > Períodos**. Concluir um exame move-o para o **Histórico** (só leitura) e reabri-lo devolve-o a
 Gerir. Um módulo, disciplina, curso ou estudante com exames ou notas de exames não pode ser apagado.
-Numa base existente, aplique `backend/src/main/resources/db/manual/20261018_create_student_exams.sql`.
 
 ## Regra da base de dados
 
@@ -435,17 +402,6 @@ prioridades, métodos de pagamento e percentagem de alerta dos orçamentos;
 categorias, fornecedores e orçamentos também são geridos nessa área. Os valores
 financeiros são persistidos como `NUMERIC(14,2)` e o registo de pagamento
 verifica o saldo sob bloqueio transaccional.
-
-Antes de utilizar uma base existente, execute manualmente
-`backend/src/main/resources/db/manual/20261019_create_internal_expenses.sql` e,
-em seguida,
-`backend/src/main/resources/db/manual/20261019_add_internal_expense_settings.sql`
-e, por fim,
-`backend/src/main/resources/db/manual/20261031_internal_expense_requester_id.sql`.
-O primeiro script cria as tabelas do módulo e as categorias iniciais; o segundo
-cria e inicializa as configurações; o terceiro troca o nome do solicitante em
-texto pelo ID do membro do staff (`requester_id`) e indica como tratar as
-despesas antigas cujo nome não coincida com um único membro do staff.
 
 O solicitante de cada despesa é escolhido na lista de staff activo e só o seu ID
 fica guardado; o nome é lido de `staff_members`. O projecto actual não
@@ -688,20 +644,14 @@ decide `teacher` / `other` / `hr`. Os modos ficam em `utils/teacherMode.js`
   servidor recusa depois disso e as respostas trazem `canDelete`; o botão Apagar só existe enquanto
   `canDelete` for verdadeiro e depois desaparece para sempre.
 
-## Scripts SQL manuais (`backend/src/main/resources/db/manual/`)
+## Esquema da base de dados
 
-O Hibernate (`ddl-auto: update`) cria tabelas e colunas novas, mas **não remove `NOT NULL`**.
-Scripts desta série (executar à mão em bases antigas se necessário):
-
-- `20261102_assessment_sheet_students_completion.sql` — datas de entrada e conclusão no registo de notas.
-- `20261102_task_account_columns.sql` — conta que criou a tarefa / comentou.
-- `20261103_expenses_forwarding.sql` — encaminhamento e anotações nos quatro tipos de despesa.
-- `20261104_purchases_optional_fields.sql` — compras e devoluções sem campos obrigatórios.
-- `20261105_late_fines.sql` — definição e colunas da multa.
-- `20261106_system_partitions.sql` — identidade da instalação e registo de repartições.
-- `20261107_add_mobile_money_wallet_credentials.sql` — credenciais do M-Pesa nas carteiras.
-- `20261107_create_institution_site.sql` — website da instituição.
-- `20261108_salary_bank_and_confirmation.sql` — banco e NIB no cadastro de salário e confirmação de recebimento.
+O esquema é gerido pelo Hibernate (`spring.jpa.hibernate.ddl-auto: update`): tabelas e colunas novas
+nascem sozinhas ao arrancar. Não há scripts SQL manuais nem Flyway/Liquibase no projecto.
+O que o Hibernate não faz (retirar `NOT NULL`, restrições e índices obsoletos de bases antigas)
+fica em `mz.cacoin.config.SchemaRelaxationInitializer`, que corre ao arrancar e é idempotente.
+Os dados iniciais (estados, tipos de documento, métodos de pagamento, plataformas) são criados
+pelos `*Initializer` em Java.
 
 ## Armadilhas conhecidas
 
@@ -716,7 +666,9 @@ Scripts desta série (executar à mão em bases antigas se necessário):
 - A lista pública de carteiras (`GET /api/mobile-money/wallets`) não inclui a configuração do
   operador; essa só sai em `GET /api/settings/mobile-money`, e as chaves nunca saem do servidor.
 - O frontend é um só `App.jsx` com `activeSection` (texto) em vez de rotas: um menu novo precisa de
-  (1) o item em `Layout.jsx` ou `teacherNav.js`, (2) o `id` tratado em `App.jsx`.
+  (1) o item em `Layout.jsx` ou `teacherNav.js`, (2) o `id` tratado em `App.jsx`. As páginas
+  carregadas sob procura estão em `src/lazyPages.js` e os leitores de secção (por exemplo
+  `staffSection`) em `src/appSections.js`.
 - Em `Layout.jsx`, um grupo novo de Configurações tem de ser registado em todos os sítios onde
   aparecem os grupos de Configurações (lista de ligações, `isXSettingsSection`, as duas cadeias
   `||` e a lista de grupos). Copiar o padrão de `fineSettingsGroup`.

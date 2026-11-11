@@ -1,2 +1,0 @@
-ALTER TABLE system_branding
-    ADD COLUMN IF NOT EXISTS address VARCHAR(300);

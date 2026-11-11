@@ -1,3 +1,0 @@
-ALTER TABLE companies
-  DROP COLUMN IF EXISTS legal_name,
-  DROP COLUMN IF EXISTS nuit;
