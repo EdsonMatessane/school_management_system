@@ -3,10 +3,12 @@ package mz.cacoin.users;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
 import mz.cacoin.audit.AuditContext;
 import mz.cacoin.audit.AuditRecorder;
+import mz.cacoin.settings.InstitutionProfileService;
 import mz.cacoin.settings.SystemSettings;
 import mz.cacoin.settings.SystemSettingsRepository;
 import mz.cacoin.staff.StaffMember;
@@ -37,6 +39,7 @@ public class AuthService {
   private final SystemSettingsRepository systemSettings;
   private final AuditRecorder auditRecorder;
   private final UserAccountService accountService;
+  private final InstitutionProfileService institution;
 
   @Transactional(noRollbackFor = ResponseStatusException.class)
   public UserDtos.AuthResponse login(UserDtos.LoginRequest request) {
@@ -56,6 +59,8 @@ public class AuthService {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, INVALID);
     }
     UserAccount account = authenticate(request.username(), request.currentPassword());
+    // Primeiro acesso: a troca obrigatória da palavra-passe é o que faz surgir a nota de boas-vindas.
+    boolean firstAccess = account.isMustChangePassword() && account.getWelcomeSeenAt() == null;
     String newPassword = request.newPassword();
     policy.validate(settings.current(), newPassword);
     if (newPassword.equals(request.currentPassword())) {
@@ -64,7 +69,68 @@ public class AuthService {
     }
     account.setPasswordHash(hasher.hash(newPassword));
     account.setMustChangePassword(false);
+    if (firstAccess) {
+      account.setWelcomePending(true);
+    }
     return response(account, complete(account));
+  }
+
+  @Transactional(readOnly = true)
+  public UserDtos.WelcomeResponse welcome(String token) {
+    UserAccount account = accountOf(token);
+    String audience = audience(account);
+    if (!Boolean.TRUE.equals(account.getWelcomePending())) {
+      return new UserDtos.WelcomeResponse(false, audience, null, account.getCode(), null);
+    }
+    return new UserDtos.WelcomeResponse(
+        true, audience, displayName(account), account.getCode(), institution.get().name());
+  }
+
+  @Transactional
+  public void dismissWelcome(String token) {
+    UserAccount account = accountOf(token);
+    account.setWelcomePending(false);
+    account.setWelcomeSeenAt(Instant.now());
+    accounts.save(account);
+  }
+
+  private UserAccount accountOf(String token) {
+    return tokens.verify(token)
+        .flatMap(claims -> accounts.findById(claims.accountId()))
+        .filter(account -> UserAccount.ACTIVE.equals(account.getStatus()))
+        .orElseThrow(() -> new ResponseStatusException(
+            HttpStatus.UNAUTHORIZED, "É necessário iniciar sessão"));
+  }
+
+  private String audience(UserAccount account) {
+    if (UserAccount.STUDENT.equals(account.getKind())) {
+      return "student";
+    }
+    if (UserAccount.STAFF.equals(account.getKind())) {
+      String type = account.getStaffId() == null ? null
+          : staff.findById(account.getStaffId()).map(StaffMember::getStaffType).orElse(null);
+      return "teachers".equals(type) ? "teacher" : "hr".equals(type) ? "hr" : "other";
+    }
+    return "admin";
+  }
+
+  private String displayName(UserAccount account) {
+    Optional<String> own = Optional.empty();
+    if (UserAccount.STUDENT.equals(account.getKind()) && account.getStudentId() != null) {
+      own = students.findById(account.getStudentId())
+          .map(student -> fullName(student.getFirstName(), student.getSurname()));
+    } else if (UserAccount.STAFF.equals(account.getKind()) && account.getStaffId() != null) {
+      own = staff.findById(account.getStaffId())
+          .map(member -> fullName(member.getFirstName(), member.getSurname()));
+    } else {
+      own = Optional.of(fullName(account.getFirstName(), account.getSurname()));
+    }
+    return own.filter(value -> !value.isBlank()).orElse(account.getCode());
+  }
+
+  private static String fullName(String first, String surname) {
+    return ((first == null ? "" : first.trim()) + " " + (surname == null ? "" : surname.trim()))
+        .trim();
   }
 
   private UserAccount authenticate(String username, String password) {

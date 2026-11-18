@@ -1,3 +1,4 @@
+import { syncInstitutionProfile } from './services/api';
 import { isHrProfileSection } from './components/teacherNav';
 import { getPortalKind, setPersonalScope, setTeacherMode } from './utils/teacherMode';
 import { Suspense, useEffect, useState } from 'react';
@@ -201,6 +202,7 @@ export default function App({ teacher = false, hr = false }) {
       window.localStorage.removeItem(logoStorageKey);
     }
     setLogo(newLogo);
+    syncInstitutionProfile();
   };
 
   const teacherPages = {

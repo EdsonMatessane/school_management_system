@@ -7,6 +7,7 @@ import LoginPage from './pages/auth/LoginPage';
 import FolderManagement from './pages/FolderManagement';
 import StudentLookUp from './pages/lookup/StudentLookUp';
 import PortalApp from './pages/portal/PortalApp';
+import WelcomeDialog from './components/WelcomeDialog';
 import {
   getAuthStatus,
   getAuthToken,
@@ -15,6 +16,7 @@ import {
   getInstitutionWebsite,
   getSystemSettings,
   getTeacherProfile,
+  syncInstitutionProfile,
 } from './services/api';
 import { setSystemYear } from './utils/systemDate';
 import { setPortalKind, setTeacherMode } from './utils/teacherMode';
@@ -67,7 +69,10 @@ const openApp = async () => {
   } catch {
     setSystemYear(null);
   }
-  render(<App teacher={teacher} hr={hr} />);
+  // O administrador mantém no servidor uma cópia do cabeçalho/rodapé dos relatórios (para os
+  // PDFs dos portais); só envia se o servidor ainda não tiver nada.
+  if (getAuthTokenKind() === 'ADMIN') syncInstitutionProfile({ bootstrap: true });
+  render(<><App teacher={teacher} hr={hr} /><WelcomeDialog /></>);
 };
 
 const openStandalone = async (element) => {

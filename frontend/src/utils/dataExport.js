@@ -12,7 +12,7 @@ const escapeHtml = (value) => [...String(value ?? '')]
 
 const escapeXml = (value) => escapeHtml(value);
 
-function downloadFile(content, filename, mimeType) {
+export function downloadFile(content, filename, mimeType) {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -107,7 +107,7 @@ function readReportConfiguration() {
   };
 }
 
-function singleLine(value) {
+export function singleLine(value) {
   return String(value ?? '—').replace(/[\r\n\t]+/g, ' ').trim() || '—';
 }
 
@@ -132,7 +132,7 @@ function pdfColumnWidths(doc, columns, rows) {
   });
 }
 
-function drawReportHeader(doc, profile, logo, pageWidth) {
+export function drawReportHeader(doc, profile, logo, pageWidth) {
   const margin = 10;
   const logoSize = 18;
   const textX = logo ? margin + logoSize + 5 : margin;
@@ -173,7 +173,7 @@ function drawReportHeader(doc, profile, logo, pageWidth) {
   doc.line(margin, separatorY, pageWidth - margin, separatorY);
 }
 
-function drawReportFooter(doc, footer, pageWidth, pageHeight) {
+export function drawReportFooter(doc, footer, pageWidth, pageHeight) {
   const margin = 10;
   const separatorY = pageHeight - 17;
   doc.setLineWidth(0.3);

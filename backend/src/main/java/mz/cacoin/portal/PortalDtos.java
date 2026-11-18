@@ -140,4 +140,23 @@ public final class PortalDtos {
       List<OnlineMaterialLine> materials) {}
 
   public record OnlineClasses(String courseName, List<OnlineLessonLine> lessons) {}
+
+  /** Dados do cartão de estudante digital e da carta de boas-vindas (só leitura). */
+  public record Documents(
+      String code,
+      String name,
+      String gender,
+      LocalDate birthDate,
+      String phone,
+      String email,
+      String bi,
+      String courseName,
+      String categoryName,
+      String levelName,
+      String modalityName,
+      LocalDate enrollmentDate,
+      Integer durationMonths,
+      LocalDate endDate,
+      String enrollmentStatus,
+      boolean active) {}
 }

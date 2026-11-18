@@ -1,0 +1,95 @@
+.dcard-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.dcard-scene { width: 100%; max-width: 480px; perspective: 1000px; }
+.dcard {
+  position: relative; width: 100%; aspect-ratio: 1.586 / 1; transform-style: preserve-3d;
+  transition: transform 0.7s; cursor: pointer; border: 0; padding: 0; background: none; display: block;
+}
+.dcard.flipped { transform: rotateY(180deg); }
+.dcard-face {
+  position: absolute; inset: 0; border-radius: 16px; overflow: hidden; color: var(--dc-ink);
+  backface-visibility: hidden; -webkit-backface-visibility: hidden; text-align: left;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.22); border: 1px solid #cbd5e1;
+  background: #ffffff;
+  container-type: inline-size; display: flex; flex-direction: column;
+}
+.dcard-back { transform: rotateY(180deg); }
+/* o espaçamento fica num elemento interior: no próprio contentor as unidades cqw não valem */
+.dcard-inner {
+  flex: 1; display: flex; flex-direction: column; justify-content: space-between;
+  padding: 4.5cqw 5cqw 3.5cqw; min-height: 0;
+}
+.dcard-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 2cqw;
+  padding-bottom: 2.4cqw; border-bottom: 1px solid var(--dc-accent);
+}
+.dcard-brand { display: flex; align-items: center; gap: 2.4cqw; min-width: 0; }
+.dcard-logo {
+  width: 11cqw; height: 11cqw; object-fit: contain; flex: none; background: #fff;
+  border: 0; border-radius: 0; padding: 0;
+}
+.dcard-brandtext { min-width: 0; }
+.dcard-inst {
+  display: block; font-weight: 800; font-size: 3.1cqw; letter-spacing: .08em; text-transform: uppercase;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--dc-ink);
+}
+.dcard-sub {
+  display: block; font-size: 2.3cqw; font-style: italic; color: var(--dc-ink); margin-top: .6cqw;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dcard-badge {
+  flex: none; font-size: 2cqw; font-weight: 700; letter-spacing: .12em; padding: .8cqw 1.8cqw;
+  border-radius: 6px; border: 1px solid var(--dc-accent); color: var(--dc-accent);
+}
+.dcard-body { display: grid; grid-template-columns: 24cqw 1fr; gap: 3.5cqw; align-items: center; }
+.dcard-photo { display: flex; flex-direction: column; align-items: center; gap: 1.2cqw; }
+.dcard-avatar {
+  width: 22cqw; height: 28cqw; border-radius: 8px; border: 2px solid var(--dc-accent);
+  background: var(--dc-accent); color: #fff; display: flex; align-items: center;
+  justify-content: center; font-weight: 800; font-size: 8cqw;
+}
+.dcard-status { font-size: 1.8cqw; letter-spacing: .08em; color: var(--dc-ink); font-weight: 600; text-align: center; }
+.dcard-info { display: flex; flex-direction: column; gap: 1.1cqw; min-width: 0; }
+.dcard-label {
+  display: block; font-size: 1.9cqw; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--dc-muted);
+}
+.dcard-value {
+  display: block; font-size: 2.7cqw; font-weight: 600; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; color: var(--dc-ink);
+}
+.dcard-number {
+  color: var(--dc-accent); font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-weight: 800; letter-spacing: .12em; font-size: 3.2cqw;
+}
+.dcard-name { font-size: 3.6cqw; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+.dcard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1cqw 3cqw; }
+.dcard-grid .wide { grid-column: 1 / -1; }
+.dcard-foot {
+  display: flex; justify-content: space-between; align-items: center; flex: none;
+  padding: 2.2cqw 5cqw; background: var(--dc-accent); font-size: 2.3cqw; color: #fff;
+}
+.dcard-chip {
+  width: 9cqw; height: 6.6cqw; border-radius: 5px; border: 1px solid rgba(0,0,0,.18);
+  background: linear-gradient(135deg, #f1f5f9, #cbd5e1 40%, #94a3b8 70%, #f1f5f9);
+}
+.dcard-foot b { font-family: ui-monospace, Menlo, Consolas, monospace; }
+.dcard-stripe { height: 10cqw; background: var(--dc-accent); margin-top: 5cqw; flex: none; }
+.dcard-back-mid { display: flex; gap: 4cqw; align-items: center; padding: 3cqw 5cqw 0; }
+.dcard-sign { flex: 1; min-width: 0; }
+.dcard-signbox {
+  margin-top: 1cqw; height: 10cqw; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px;
+  color: var(--dc-ink); font-family: Georgia, serif; font-style: italic; font-weight: 600; font-size: 3.6cqw;
+  display: flex; align-items: center; padding: 0 3cqw; overflow: hidden; white-space: nowrap;
+}
+.dcard-qr {
+  background: #fff; padding: 1.2cqw; border-radius: 4px; width: 19cqw; height: 19cqw; flex: none;
+  border: 1px solid #cbd5e1;
+}
+.dcard-qr svg { width: 100%; height: 100%; display: block; }
+.dcard-notice { margin: 0; padding: 2.5cqw 5cqw 0; font-size: 2cqw; line-height: 1.5; color: var(--dc-ink); text-align: justify; }
+.dcard-back-foot {
+  margin: auto 5cqw 3.5cqw; padding-top: 2cqw; border-top: 1px solid var(--dc-accent);
+  display: flex; justify-content: space-between; font-size: 2.2cqw; font-weight: 700; color: var(--dc-ink);
+}
+.dcard-back-foot span:last-child { color: var(--dc-accent); }
+.dcard-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }

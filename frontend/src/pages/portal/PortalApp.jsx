@@ -6,6 +6,7 @@ import {
   CalendarCheck,
   CalendarDays,
   ClipboardList,
+  CreditCard,
   FileText,
   GraduationCap,
   LayoutDashboard,
@@ -17,12 +18,14 @@ import {
   Wallet,
 } from 'lucide-react';
 import logo from '../../assets/logo.png';
+import WelcomeDialog from '../../components/WelcomeDialog';
 import { systemDate } from '../../utils/systemDate';
 import { getPortalNotifications, getPortalProfile, setAuthToken } from '../../services/api';
 import PortalAcademics from './PortalAcademics';
 import PortalAttendance from './PortalAttendance';
 import PortalCourses from './PortalCourses';
 import PortalDashboard from './PortalDashboard';
+import PortalDocuments from './PortalDocuments';
 import PortalNotificationDialog from './PortalNotificationDialog';
 import PortalNotifications from './PortalNotifications';
 import PortalOnlineClasses from './PortalOnlineClasses';
@@ -57,6 +60,7 @@ const groups = [
     { id: 'requests', label: 'Pedidos', icon: ClipboardList },
     { id: 'services', label: 'Serviços', icon: ShoppingBag },
     { id: 'notifications', label: 'Notificações', icon: Bell },
+    { id: 'documents', label: 'Cartão e carta', icon: CreditCard },
   ],
 ];
 
@@ -140,6 +144,7 @@ export default function PortalApp() {
     requests: <PortalRequests />,
     services: <PortalServices />,
     notifications: <PortalNotifications seen={seen} onRead={markRead} />,
+    documents: <PortalDocuments />,
   }[section];
 
   return (
@@ -183,6 +188,8 @@ export default function PortalApp() {
             </Menu>
           </div>
         </header>
+
+        <WelcomeDialog onOpenDocuments={() => setSection('documents')} />
 
         <PortalNotificationDialog
           open={bellOpen}

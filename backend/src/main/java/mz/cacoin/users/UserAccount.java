@@ -72,6 +72,13 @@ public class UserAccount {
   @Column(columnDefinition = "TEXT")
   private String notes;
 
+  /** Verdadeiro desde a primeira troca de palavra-passe até o utilizador fechar a nota de boas-vindas. */
+  @Column(name = "welcome_pending")
+  private Boolean welcomePending;
+
+  @Column(name = "welcome_seen_at")
+  private Instant welcomeSeenAt;
+
   @Column(name = "last_access_at")
   private Instant lastAccessAt;
 

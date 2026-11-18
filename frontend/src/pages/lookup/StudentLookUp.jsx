@@ -6,6 +6,7 @@ import {
   CalendarCheck,
   CalendarDays,
   ClipboardList,
+  CreditCard,
   Eye,
   FileText,
   GraduationCap,
@@ -24,6 +25,7 @@ import LookupAcademics from './LookupAcademics';
 import LookupAttendance from './LookupAttendance';
 import LookupCourses from './LookupCourses';
 import LookupDashboard from './LookupDashboard';
+import LookupDocuments from './LookupDocuments';
 import LookupNotifications from './LookupNotifications';
 import PortalNotificationDialog from '../portal/PortalNotificationDialog';
 import LookupOnlineClasses from './LookupOnlineClasses';
@@ -57,6 +59,7 @@ const groups = [
     { id: 'requests', label: 'Pedidos', icon: ClipboardList },
     { id: 'services', label: 'Serviços', icon: ShoppingBag },
     { id: 'notifications', label: 'Notificações', icon: Bell },
+    { id: 'documents', label: 'Cartão e carta', icon: CreditCard },
   ],
 ];
 
@@ -119,6 +122,7 @@ export default function StudentLookUp({ code }) {
     requests: <LookupRequests code={code} />,
     services: <LookupServices code={code} />,
     notifications: <LookupNotifications code={code} />,
+    documents: <LookupDocuments code={code} />,
   }[section];
 
   return (

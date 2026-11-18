@@ -164,6 +164,12 @@ Portal do estudante: /api/portal/** (sem tabelas proprias) devolve so os dados d
 O AuthFilter guarda o id do estudante no atributo cacoin.portal.studentId; os tokens de estudante nao acedem ao resto da API.
 
 
+Cartao digital, carta de boas-vindas e nota de primeiro acesso: sem tabelas novas de pessoas. user_accounts ganha
+welcome_pending e welcome_seen_at (so datas/estado da conta). institution_profile (linha unica: nome, slogan, morada,
+contacto, email, rodape e logotipo) guarda a copia do cabecalho/rodape dos relatorios para os PDFs dos portais;
+GET /api/auth/institution e publico e o PUT /api/settings/institution-profile e do administrador. Os dados do cartao
+e da carta (/api/portal/documents e /api/lookup/{code}/documents) sao lidos de students e student_enrollments pelo ID.
+
 Corrigido: tasks, task_comments - tinham nomes em texto (assignee, created_by, author). Passaram
 a assignee_id, created_by_id e author_id (ID em staff_members).
 

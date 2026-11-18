@@ -33,6 +33,13 @@ public class PortalController {
     return portal.overview(studentId);
   }
 
+  /** Dados para o cartão de estudante digital e para a carta de boas-vindas. */
+  @GetMapping("/documents")
+  public PortalDtos.Documents documents(
+      @RequestAttribute(AuthFilter.PORTAL_STUDENT) Long studentId) {
+    return portal.documents(studentId);
+  }
+
   @GetMapping("/profile")
   public PortalDtos.Profile profile(@RequestAttribute(AuthFilter.PORTAL_STUDENT) Long studentId) {
     return portal.profile(studentId);

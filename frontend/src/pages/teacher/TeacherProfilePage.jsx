@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Alert, Button, TextField } from '@mui/material';
+import DigitalCard from '../../components/DigitalCard';
 import ThemeSelector from '../../components/ThemeSelector';
-import { changeOwnPassword, getTeacherProfile, setAuthToken } from '../../services/api';
+import {
+  changeOwnPassword,
+  getInstitutionProfile,
+  getTeacherProfile,
+  setAuthToken,
+} from '../../services/api';
+import { staffCardData } from '../../utils/cardData';
 import { toDisplayDate } from '../../utils/date';
 import { displayText } from '../../utils/displayText';
 
@@ -11,6 +18,7 @@ const fullName = (staff) => [staff.firstName, staff.surname]
 
 export default function TeacherProfilePage({ theme, onThemeChange }) {
   const [staff, setStaff] = useState(null);
+  const [institution, setInstitution] = useState({});
   const [error, setError] = useState('');
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
@@ -48,6 +56,7 @@ export default function TeacherProfilePage({ theme, onThemeChange }) {
   };
 
   useEffect(() => {
+    getInstitutionProfile().then(setInstitution).catch(() => setInstitution({}));
     getTeacherProfile()
       .then((profile) => setStaff(profile.staff))
       .catch(() => setError('Não foi possível carregar os seus dados.'));
@@ -79,6 +88,10 @@ export default function TeacherProfilePage({ theme, onThemeChange }) {
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       {staff && (
         <>
+          <div className="cacoin-settings-card" style={{ marginBottom: 24 }}>
+            <h2 style={{ marginTop: 0 }}>Cartão de funcionário</h2>
+            <DigitalCard card={staffCardData(staff, institution)} />
+          </div>
           <div
             style={{
               display: 'grid',

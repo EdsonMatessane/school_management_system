@@ -79,4 +79,8 @@ public final class UserDtos {
       String name) {}
 
   public record AuthStatusResponse(boolean required) {}
+
+  /** Nota de boas-vindas do primeiro acesso; `audience`: student, teacher, hr, other ou admin. */
+  public record WelcomeResponse(
+      boolean pending, String audience, String name, String code, String institutionName) {}
 }

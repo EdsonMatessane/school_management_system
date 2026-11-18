@@ -129,6 +129,39 @@ public class PortalService {
         enrollment == null ? null : student.isActive() ? "Ativo" : "Inativo");
   }
 
+  /**
+   * Dados do cartão digital e da carta de boas-vindas. A data de conclusão é a data de inscrição
+   * mais a duração da inscrição (ou, se faltar, a duração do curso).
+   */
+  @Transactional(readOnly = true)
+  public PortalDtos.Documents documents(Long studentId) {
+    Student student = student(studentId);
+    PortalDtos.Profile profile = profile(studentId);
+    StudentEnrollment enrollment = lastEnrollment(studentId);
+    Integer duration = enrollment == null ? null
+        : enrollment.getDurationMonths() != null ? enrollment.getDurationMonths()
+        : enrollment.getCourse() == null ? null : enrollment.getCourse().getDurationMonths();
+    LocalDate end = profile.enrollmentDate() != null && duration != null && duration > 0
+        ? profile.enrollmentDate().plusMonths(duration) : null;
+    return new PortalDtos.Documents(
+        profile.code(),
+        profile.name(),
+        student.getGender(),
+        student.getBirthDate(),
+        profile.phone(),
+        profile.email(),
+        profile.bi(),
+        profile.courseName(),
+        profile.categoryName(),
+        profile.levelName(),
+        profile.modalityName(),
+        profile.enrollmentDate(),
+        duration,
+        end,
+        profile.enrollmentStatus(),
+        student.isActive());
+  }
+
   @Transactional
   public PortalDtos.Payments payments(Long studentId) {
     Student student = student(studentId);

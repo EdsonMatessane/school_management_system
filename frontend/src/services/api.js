@@ -555,6 +555,37 @@ export const getInstitutionWebsite = () =>
   api.get('/auth/site').then((response) => response.data?.website ?? '');
 export const saveInstitutionWebsite = (website) =>
   api.put('/settings/website', { website }).then((response) => response.data?.website ?? '');
+/** Cabeçalho e rodapé dos relatórios guardados no servidor (público; usado nos PDFs dos portais). */
+export const getInstitutionProfile = () =>
+  api.get('/auth/institution').then((response) => response.data ?? {});
+
+/**
+ * Envia ao servidor o perfil, o rodapé e o logótipo deste navegador (só o administrador).
+ * Com `bootstrap`, só envia se o servidor ainda não tiver nada, para nunca apagar dados.
+ */
+export const syncInstitutionProfile = async ({ bootstrap = false } = {}) => {
+  try {
+    const profile = getSchoolProfile();
+    const local = {
+      name: profile.institutionName ?? '',
+      slogan: profile.institutionSlogan ?? '',
+      address: profile.institutionAddress ?? '',
+      primaryPhone: profile.institutionPrimaryPhone ?? '',
+      email: profile.institutionEmail ?? '',
+      reportFooter: window.localStorage.getItem('cacoin.schoolReportFooter') ?? '',
+      logo: window.localStorage.getItem('cacoin.logo') ?? '',
+    };
+    if (bootstrap) {
+      if (!Object.values(local).some(Boolean)) return;
+      const remote = await getInstitutionProfile();
+      if (remote.name || remote.logo || remote.reportFooter || remote.address) return;
+    }
+    await api.put('/settings/institution-profile', local);
+  } catch {
+    // a cópia do servidor só serve os PDFs dos portais; volta a tentar-se no próximo acesso
+  }
+};
+
 export const updateSchoolProfile = async (profile) => {
   let saved = profile;
   if (!isPartitionBase()) {
@@ -565,6 +596,7 @@ export const updateSchoolProfile = async (profile) => {
     };
   }
   window.localStorage.setItem(schoolProfileKey(), JSON.stringify(saved));
+  syncInstitutionProfile();
   return saved;
 };
 
@@ -649,6 +681,8 @@ export const login = (credentials) =>
   api.post('/auth/login', credentials).then((response) => response.data);
 export const changeOwnPassword = (payload) =>
   api.post('/auth/password', payload).then((response) => response.data);
+export const getWelcome = () => api.get('/auth/welcome').then((response) => response.data);
+export const dismissWelcome = () => api.post('/auth/welcome/dismiss');
 export const getUserAccounts = (kind) =>
   api.get('/users/accounts', { params: { kind } }).then((response) => response.data);
 export const createAdminAccount = (admin) =>
@@ -676,6 +710,7 @@ export const getPortalAcademics = () => api.get('/portal/academics').then((respo
 export const getPortalAttendance = () => api.get('/portal/attendance').then((response) => response.data);
 export const getPortalRequests = () => api.get('/portal/requests').then((response) => response.data);
 export const getPortalServices = () => api.get('/portal/services').then((response) => response.data);
+export const getPortalDocuments = () => api.get('/portal/documents').then((response) => response.data);
 export const getPortalProfile = () => api.get('/portal/profile').then((response) => response.data);
 export const getPortalCourse = () => api.get('/portal/course').then((response) => response.data);
 export const getPortalModule = (id) => api.get(`/portal/modules/${id}`).then((response) => response.data);
@@ -694,6 +729,7 @@ const lookupPath = (code, path) => `/lookup/${encodeURIComponent(code)}/${path}`
 const lookupGet = (code, path) => api.get(lookupPath(code, path)).then((response) => response.data);
 export const getLookupOverview = (code) => lookupGet(code, 'overview');
 export const getLookupProfile = (code) => lookupGet(code, 'profile');
+export const getLookupDocuments = (code) => lookupGet(code, 'documents');
 export const getLookupPayments = (code) => lookupGet(code, 'payments');
 export const getLookupAcademics = (code) => lookupGet(code, 'academics');
 export const getLookupAttendance = (code) => lookupGet(code, 'attendance');

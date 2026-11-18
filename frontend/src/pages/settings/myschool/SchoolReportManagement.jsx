@@ -2,7 +2,12 @@ import { useEffect, useState } from 'react';
 import { Alert, TextField } from '@mui/material';
 import SettingsFormDialog from '../../../components/SettingsFormDialog';
 import SettingsValuesTable from '../../../components/SettingsValuesTable';
-import { getInstitutionWebsite, getSchoolProfile, updateSchoolProfile } from '../../../services/api';
+import {
+  getInstitutionWebsite,
+  getSchoolProfile,
+  syncInstitutionProfile,
+  updateSchoolProfile,
+} from '../../../services/api';
 import { isPartitionBase } from '../../../utils/institution';
 import { isValidWebsite } from '../../../utils/website';
 
@@ -44,6 +49,7 @@ export default function SchoolReportManagement({ mode, logo }) {
     event.preventDefault();
     try {
       window.localStorage.setItem(footerStorageKey, draft);
+      syncInstitutionProfile();
       setFooterText(draft);
       setDraft(null);
       setError('');

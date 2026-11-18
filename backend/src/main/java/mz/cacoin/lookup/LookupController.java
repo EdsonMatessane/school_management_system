@@ -33,6 +33,11 @@ public class LookupController {
     return portal.overview(lookup.studentId(code));
   }
 
+  @GetMapping("/documents")
+  public PortalDtos.Documents documents(@PathVariable String code) {
+    return portal.documents(lookup.studentId(code));
+  }
+
   @GetMapping("/profile")
   public PortalDtos.Profile profile(@PathVariable String code) {
     return portal.profile(lookup.studentId(code));
