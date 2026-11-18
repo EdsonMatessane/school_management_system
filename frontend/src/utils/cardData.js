@@ -7,8 +7,13 @@ export const cardTheme = {
   bg: '#ffffff', bg2: '#ffffff', ink: '#1e3a8a', muted: '#64748b', accent: '#c8102e', chip: 'silver',
 };
 
-const initialsOf = (name) => (name ?? '')
-  .split(' ').filter(Boolean).slice(0, 2).map((part) => part[0].toUpperCase()).join('');
+// Iniciais: primeiro nome + apelido (última palavra), p. ex. "Edson Cláudio Matessane" → EM.
+const initialsOf = (name) => {
+  const parts = (name ?? '').split(' ').filter(Boolean);
+  if (!parts.length) return '';
+  const last = parts.length > 1 ? parts[parts.length - 1] : '';
+  return `${parts[0][0]}${last ? last[0] : ''}`.toUpperCase();
+};
 
 const safe = (value) => (value ? displayText(value) : '—');
 

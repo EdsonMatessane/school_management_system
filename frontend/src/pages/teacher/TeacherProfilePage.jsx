@@ -2,13 +2,9 @@ import { useEffect, useState } from 'react';
 import { Alert, Button, TextField } from '@mui/material';
 import DigitalCard from '../../components/DigitalCard';
 import ThemeSelector from '../../components/ThemeSelector';
-import {
-  changeOwnPassword,
-  getInstitutionProfile,
-  getTeacherProfile,
-  setAuthToken,
-} from '../../services/api';
+import { changeOwnPassword, getTeacherProfile, setAuthToken } from '../../services/api';
 import { staffCardData } from '../../utils/cardData';
+import { loadCardInstitution } from '../../utils/reportHeader';
 import { toDisplayDate } from '../../utils/date';
 import { displayText } from '../../utils/displayText';
 
@@ -56,7 +52,7 @@ export default function TeacherProfilePage({ theme, onThemeChange }) {
   };
 
   useEffect(() => {
-    getInstitutionProfile().then(setInstitution).catch(() => setInstitution({}));
+    loadCardInstitution().then(setInstitution).catch(() => setInstitution({}));
     getTeacherProfile()
       .then((profile) => setStaff(profile.staff))
       .catch(() => setError('Não foi possível carregar os seus dados.'));

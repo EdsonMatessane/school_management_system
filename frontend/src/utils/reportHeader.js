@@ -21,6 +21,12 @@ const readLocal = () => {
   }
 };
 
+/** Nome, slogan e logótipo para o cartão: os mesmos do report header (servidor, depois navegador). */
+export async function loadCardInstitution() {
+  const { profile, logo } = await loadReportHeader();
+  return { name: profile.institutionName, slogan: profile.institutionSlogan, logo };
+}
+
 /**
  * Dados do report header e do report footer. Vêm do servidor (portais de estudante e de
  * funcionário não têm o armazenamento do administrador); o do navegador serve de reserva.

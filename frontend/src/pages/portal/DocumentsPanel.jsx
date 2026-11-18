@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Button } from '@mui/material';
 import { FileDown } from 'lucide-react';
 import DigitalCard from '../../components/DigitalCard';
-import { getInstitutionProfile } from '../../services/api';
+import { loadCardInstitution } from '../../utils/reportHeader';
 import { studentCardData } from '../../utils/cardData';
 import { errorMessage, usePortalData } from './portalUtils';
 
@@ -14,7 +14,7 @@ export default function DocumentsPanel({ loader }) {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    getInstitutionProfile().then(setInstitution).catch(() => setInstitution({}));
+    loadCardInstitution().then(setInstitution).catch(() => setInstitution({}));
   }, []);
 
   if (loading) return <p className="portal-loading">A carregar…</p>;
