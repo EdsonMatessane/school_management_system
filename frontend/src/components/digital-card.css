@@ -16,15 +16,15 @@
 /* o espaçamento fica num elemento interior: no próprio contentor as unidades cqw não valem */
 .dcard-inner {
   flex: 1; display: flex; flex-direction: column; justify-content: space-between;
-  padding: 4.5cqw 5cqw 3.5cqw; min-height: 0;
+  padding: 4cqw 5cqw 3cqw; min-height: 0;
 }
 .dcard-head {
   display: flex; align-items: flex-start; justify-content: space-between; gap: 2cqw;
-  padding-bottom: 2.4cqw; border-bottom: 1px solid var(--dc-accent);
+  padding-bottom: 2cqw; border-bottom: 1px solid var(--dc-accent);
 }
 .dcard-brand { display: flex; align-items: center; gap: 2.4cqw; min-width: 0; }
 .dcard-logo {
-  width: 11cqw; height: 11cqw; object-fit: contain; flex: none; background: #fff;
+  width: 10cqw; height: 10cqw; object-fit: contain; flex: none; background: #fff;
   border: 0; border-radius: 0; padding: 0;
 }
 .dcard-brandtext { min-width: 0; }
@@ -48,21 +48,27 @@
   justify-content: center; font-weight: 800; font-size: 8cqw;
 }
 .dcard-status { font-size: 1.8cqw; letter-spacing: .08em; color: var(--dc-ink); font-weight: 600; text-align: center; }
-.dcard-info { display: flex; flex-direction: column; gap: 1.1cqw; min-width: 0; }
+.dcard-info { display: flex; flex-direction: column; gap: 0.8cqw; min-width: 0; }
 .dcard-label {
-  display: block; font-size: 1.9cqw; font-weight: 700; letter-spacing: .08em;
+  display: block; font-size: 1.7cqw; font-weight: 700; letter-spacing: .08em;
   text-transform: uppercase; color: var(--dc-muted);
 }
 .dcard-value {
-  display: block; font-size: 2.7cqw; font-weight: 600; white-space: nowrap;
+  display: block; font-size: 2.4cqw; font-weight: 600; white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis; color: var(--dc-ink);
 }
 .dcard-number {
   color: var(--dc-accent); font-family: ui-monospace, Menlo, Consolas, monospace;
-  font-weight: 800; letter-spacing: .12em; font-size: 3.2cqw;
+  font-weight: 800; letter-spacing: .12em; font-size: 3cqw;
 }
-.dcard-name { font-size: 3.6cqw; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
-.dcard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1cqw 3cqw; }
+/* o nome quebra em linhas (no máximo 3) e o tamanho da letra vem do comprimento (ver DigitalCard) */
+.dcard-name {
+  font-size: 3.2cqw; font-weight: 800; text-transform: uppercase; letter-spacing: .03em;
+  white-space: normal; overflow-wrap: anywhere; line-height: 1.15;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+  text-overflow: clip;
+}
+.dcard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8cqw 3cqw; }
 .dcard-grid .wide { grid-column: 1 / -1; }
 .dcard-foot {
   display: flex; justify-content: space-between; align-items: center; flex: none;

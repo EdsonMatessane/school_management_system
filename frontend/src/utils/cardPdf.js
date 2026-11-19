@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf';
+import { nameTier } from './cardData';
 import { downloadFile } from './dataExport';
 import { qrMatrix } from './qrcode';
 
@@ -66,24 +67,36 @@ function front(doc, card) {
   doc.text(card.status, 13.5, 44, { align: 'center' });
 
   const left = 27;
+  // O nome ajusta o tamanho da letra e quebra em linhas (até 3); o bloco sobe e os campos
+  // descem o que for preciso para nada tocar na faixa vermelha de baixo.
   doc.setFont('helvetica', 'bold');
+  const nameSize = [8, 7, 6][nameTier(card.name)];
+  doc.setFontSize(nameSize);
+  let nameLines = doc.splitTextToSize(card.name.toUpperCase(), 54);
+  if (nameLines.length > 3) nameLines = [...nameLines.slice(0, 2), fit(doc, nameLines.slice(2).join(' '), 54)];
+  const extra = nameLines.length - 1;
+  const lineHeight = nameSize * 0.3528 * 1.12;
+  const shift = [0, -0.6, -1.2][extra];
+  const rowStep = [5.8, 5.0, 4.6][extra];
+  const valueOffset = [3, 2.7, 2.4][extra];
+
   doc.setFontSize(4.3);
   doc.setTextColor(...muted);
-  doc.text(`${card.numberLabel}:`.toUpperCase(), left, 18.2);
+  doc.text(`${card.numberLabel}:`.toUpperCase(), left, 18.2 + shift);
   doc.setFontSize(8);
   doc.setTextColor(...accent);
-  doc.text(card.number, left, 21.8);
+  doc.text(card.number, left, 21.8 + shift);
   doc.setFontSize(4.3);
   doc.setTextColor(...muted);
-  doc.text('NOME:', left, 25.3);
-  doc.setFontSize(8);
+  doc.text('NOME:', left, 25.3 + shift);
+  doc.setFontSize(nameSize);
   doc.setTextColor(...ink);
-  doc.text(fit(doc, card.name.toUpperCase(), 54), left, 29);
+  doc.text(nameLines, left, 29 + shift, { lineHeightFactor: 1.12 });
 
-  let y = 33.2;
+  let y = 33.2 + shift + extra * lineHeight + (extra === 1 ? 0.4 : 0) - (extra ? 1.2 : 0);
   let column = 0;
   card.fields.forEach((field) => {
-    if (field.wide && column === 1) { column = 0; y += 5.8; }
+    if (field.wide && column === 1) { column = 0; y += rowStep; }
     const x = field.wide || column === 0 ? left : left + 28;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(3.8);
@@ -91,8 +104,8 @@ function front(doc, card) {
     doc.text(`${field.label}:`.toUpperCase(), x, y);
     doc.setFontSize(6);
     doc.setTextColor(...ink);
-    doc.text(fit(doc, field.value, field.wide ? 54 : 27), x, y + 3);
-    if (field.wide || column === 1) { column = 0; y += 5.8; } else { column = 1; }
+    doc.text(fit(doc, field.value, field.wide ? 54 : 27), x, y + valueOffset);
+    if (field.wide || column === 1) { column = 0; y += rowStep; } else { column = 1; }
   });
 
   doc.setFont('helvetica', 'normal');

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Button } from '@mui/material';
 import { Download, RotateCw } from 'lucide-react';
+import { nameTier } from '../utils/cardData';
 import { qrMatrix } from '../utils/qrcode';
 import './digital-card.css';
 
@@ -74,7 +75,12 @@ export default function DigitalCard({ card, showDownload = true }) {
                 </div>
                 <div>
                   <span className="dcard-label">Nome:</span>
-                  <span className="dcard-value dcard-name">{card.name}</span>
+                  <span
+                    className="dcard-value dcard-name"
+                    style={{ fontSize: `${[3.2, 2.9, 2.5][nameTier(card.name)]}cqw` }}
+                  >
+                    {card.name}
+                  </span>
                 </div>
                 <div className="dcard-grid">
                   {card.fields.map((field) => (

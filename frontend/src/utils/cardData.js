@@ -7,6 +7,12 @@ export const cardTheme = {
   bg: '#ffffff', bg2: '#ffffff', ink: '#1e3a8a', muted: '#64748b', accent: '#c8102e', chip: 'silver',
 };
 
+// Nível de tamanho do nome: 0 = curto, 1 = médio, 2 = muito comprido (o nome quebra em linhas).
+export const nameTier = (name) => {
+  const length = String(name ?? '').length;
+  return length <= 24 ? 0 : length <= 36 ? 1 : 2;
+};
+
 // Iniciais: primeiro nome + apelido (última palavra), p. ex. "Edson Cláudio Matessane" → EM.
 const initialsOf = (name) => {
   const parts = (name ?? '').split(' ').filter(Boolean);
