@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   BookOpen,
+  ChevronDown,
   Pencil,
   Plus,
   Power,
@@ -19,6 +20,7 @@ import {
   FormControlLabel,
   FormLabel,
   IconButton,
+  InputAdornment,
   Radio,
   RadioGroup,
   TableCell,
@@ -26,6 +28,7 @@ import {
   TextField,
   Tooltip,
 } from '@mui/material';
+import FeePickerDialog from '../../../components/FeePickerDialog';
 import StandardTable from '../../../components/StandardTable';
 import DataExportMenu from '../../../components/DataExportMenu';
 import SearchField from '../../../components/SearchField';
@@ -107,6 +110,7 @@ export default function CoursesManagement() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [monthlyPickerOpen, setMonthlyPickerOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [deletingCourse, setDeletingCourse] = useState(null);
@@ -473,12 +477,33 @@ export default function CoursesManagement() {
                 onChange={(event) => setField('durationMonths', event.target.value)}
                 slotProps={{ htmlInput: { min: 1, step: 1 } }}
               />
-              {renderOptionAutocomplete(
-                'monthlyFee',
-                'Mensalidade',
-                options.monthlyFees,
-                (item) => `${item.type} - ${formatMoney(item.amount)}`,
-              )}
+              <TextField
+                required
+                label="Mensalidade"
+                size="small"
+                value={form.monthlyFee
+                  ? `${form.monthlyFee.type} - ${formatMoney(form.monthlyFee.amount)}`
+                  : ''}
+                onClick={() => setMonthlyPickerOpen(true)}
+                onKeyDown={(event) => {
+                  if (['Enter', ' ', 'ArrowDown'].includes(event.key)) {
+                    event.preventDefault();
+                    setMonthlyPickerOpen(true);
+                  }
+                }}
+                slotProps={{
+                  input: {
+                    readOnly: true,
+                    sx: { cursor: 'pointer' },
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <ChevronDown size={20} color="var(--primary)" aria-hidden="true" />
+                      </InputAdornment>
+                    ),
+                  },
+                  htmlInput: { style: { cursor: 'pointer' }, 'aria-haspopup': 'dialog' },
+                }}
+              />
               {renderOptionAutocomplete(
                 'enrollmentFee',
                 'Valor de inscrição',
@@ -501,6 +526,19 @@ export default function CoursesManagement() {
           </DialogActions>
         </form>
       </Dialog>
+
+      <FeePickerDialog
+        open={monthlyPickerOpen}
+        title="Selecionar mensalidade"
+        itemLabel="mensalidade"
+        items={options.monthlyFees}
+        selectedId={form.monthlyFee?.id}
+        onClose={() => setMonthlyPickerOpen(false)}
+        onConfirm={(fee) => {
+          setField('monthlyFee', fee);
+          setMonthlyPickerOpen(false);
+        }}
+      />
 
       <Dialog
         open={Boolean(deletingCourse)}
