@@ -1,11 +1,11 @@
 import { InputAdornment, TextField } from '@mui/material';
 import { Search } from 'lucide-react';
 
-export default function SearchField({ value, onChange, width = 280 }) {
+export default function SearchField({ value, onChange, width = 280, label = 'Pesquisar' }) {
   return (
     <TextField
       size="small"
-      label="Pesquisar"
+      label={label}
       value={value}
       onChange={(event) => onChange(event.target.value)}
       sx={{ width, maxWidth: '100%' }}

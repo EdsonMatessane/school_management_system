@@ -2,12 +2,16 @@ import { useEffect, useState } from 'react';
 import { Alert, Button } from '@mui/material';
 import { FileDown } from 'lucide-react';
 import DigitalCard from '../../components/DigitalCard';
-import { loadCardInstitution } from '../../utils/reportHeader';
+import { recordPortalIssue } from '../../services/api';
 import { studentCardData } from '../../utils/cardData';
+import { loadCardInstitution } from '../../utils/reportHeader';
 import { errorMessage, usePortalData } from './portalUtils';
 
-/** Cartão de estudante digital e carta de boas-vindas (portal do estudante e consulta). */
-export default function DocumentsPanel({ loader }) {
+/**
+ * Cartão de estudante digital e carta de boas-vindas. A fotografia é colocada pela secretaria
+ * (Gestão de Cartões); no portal as descargas ficam registadas e na consulta (`readOnly`) não.
+ */
+export default function DocumentsPanel({ loader, readOnly = false }) {
   const { data, loading, error } = usePortalData(loader);
   const [institution, setInstitution] = useState({});
   const [notice, setNotice] = useState(null);
@@ -20,12 +24,15 @@ export default function DocumentsPanel({ loader }) {
   if (loading) return <p className="portal-loading">A carregar…</p>;
   if (error) return <p className="portal-error">{error}</p>;
 
+  const card = studentCardData(data, institution);
+
   const letter = async () => {
     setBusy(true);
     setNotice(null);
     try {
       const { exportStudentLetter } = await import('../../utils/studentLetter');
       await exportStudentLetter(data);
+      if (!readOnly) recordPortalIssue('LETTER');
     } catch (letterError) {
       setNotice({ severity: 'error', text: errorMessage(letterError) });
     } finally {
@@ -40,7 +47,7 @@ export default function DocumentsPanel({ loader }) {
       </div>
       <section className="portal-card">
         <h2>Cartão de estudante</h2>
-        <DigitalCard card={studentCardData(data, institution)} />
+        <DigitalCard card={card} onDownloaded={readOnly ? undefined : () => recordPortalIssue('CARD')} />
       </section>
       <section className="portal-card">
         <h2>Carta de boas-vindas</h2>

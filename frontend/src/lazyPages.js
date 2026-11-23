@@ -9,6 +9,9 @@ export const ModulesManagement = lazy(
 export const StudentEnrollmentPage = lazy(
   () => import('./pages/students/StudentEnrollmentPage'),
 );
+export const StudentCardsPage = lazy(
+  () => import('./pages/students/StudentCardsPage'),
+);
 export const StudentManagementPage = lazy(
   () => import('./pages/students/StudentManagementPage'),
 );

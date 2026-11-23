@@ -3,9 +3,14 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/
 import { dismissWelcome, getWelcome } from '../services/api';
 import { welcomeContent } from './welcomeContent';
 
+const OPEN_EVENT = 'cacoin:open-welcome';
+
+/** Volta a abrir a nota «Como usar o sistema» (menu de ajuda de cada portal). */
+export const openWelcomeGuide = () => window.dispatchEvent(new Event(OPEN_EVENT));
+
 /**
- * Nota de boas-vindas do primeiro acesso (todos os tipos de utilizador). O servidor diz se
- * está pendente; ao fechar, fica registada como vista e não volta a aparecer.
+ * Nota de boas-vindas. Abre sozinha no primeiro acesso (o servidor diz se está pendente; ao
+ * fechar fica registada como vista) e pode ser aberta quando se quiser em «Como usar o sistema».
  */
 export default function WelcomeDialog({ onOpenDocuments }) {
   const [welcome, setWelcome] = useState(null);
@@ -20,12 +25,24 @@ export default function WelcomeDialog({ onOpenDocuments }) {
         setOpen(true);
       })
       .catch(() => {});
-    return () => { active = false; };
+    const reopen = () => {
+      getWelcome()
+        .then((result) => { if (active && result) { setWelcome(result); setOpen(true); } })
+        .catch(() => {});
+    };
+    window.addEventListener(OPEN_EVENT, reopen);
+    return () => {
+      active = false;
+      window.removeEventListener(OPEN_EVENT, reopen);
+    };
   }, []);
 
   const close = () => {
     setOpen(false);
-    dismissWelcome().catch(() => {});
+    if (welcome?.pending) {
+      dismissWelcome().catch(() => {});
+      setWelcome({ ...welcome, pending: false });
+    }
   };
 
   const content = welcome ? welcomeContent[welcome.audience] ?? welcomeContent.other : null;
@@ -34,7 +51,7 @@ export default function WelcomeDialog({ onOpenDocuments }) {
 
   return (
     <Dialog open={open} onClose={close} fullWidth maxWidth="sm" scroll="paper">
-      <DialogTitle>{content.title}{firstName ? `, ${firstName}` : ''}!</DialogTitle>
+      <DialogTitle>{content.title}{welcome.pending && firstName ? `, ${firstName}` : ''}!</DialogTitle>
       <DialogContent dividers>
         {welcome.institutionName && (
           <p style={{ marginTop: 0 }}><strong>{welcome.institutionName}</strong></p>
@@ -55,7 +72,7 @@ export default function WelcomeDialog({ onOpenDocuments }) {
         {onOpenDocuments && welcome.audience === 'student' && (
           <Button onClick={() => { close(); onOpenDocuments(); }}>Ver cartão e carta</Button>
         )}
-        <Button variant="contained" onClick={close}>Começar</Button>
+        <Button variant="contained" onClick={close}>{welcome.pending ? 'Começar' : 'Fechar'}</Button>
       </DialogActions>
     </Dialog>
   );

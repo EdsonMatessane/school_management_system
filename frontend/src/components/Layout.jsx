@@ -27,6 +27,7 @@ import {
   FolderTree,
   GraduationCap,
   Layers,
+  HelpCircle,
   LogOut,
   FileText,
   Plus,
@@ -70,6 +71,7 @@ import {
 } from '../services/api';
 import { getSystemYear } from '../utils/systemDate';
 import { getAuthToken, getSchoolProfile, setAuthToken } from '../services/api';
+import { openWelcomeGuide } from './WelcomeDialog';
 import { getApiBase, readInstitutionOptions } from '../utils/institution';
 import {
   teacherAreaOf,
@@ -135,6 +137,7 @@ const moduleLinks = [
 const studentLinks = [
   { id: 'student-enroll', label: 'Inscrever', icon: UserPlus },
   { id: 'student-manage', label: 'Gerir', icon: UsersRound },
+  { id: 'student-cards', label: 'Gestão de Cartões', icon: CreditCard },
   { id: 'student-history', label: 'Histórico', icon: History },
 ];
 
@@ -1568,6 +1571,13 @@ export default function Layout({
           <span aria-hidden="true">|</span>
           <span>{currentTime}</span>
         </div>
+        {getAuthToken() && (
+          <Tooltip title="Como usar o sistema">
+            <IconButton aria-label="Como usar o sistema" onClick={openWelcomeGuide} sx={{ ml: 1.5 }}>
+              <HelpCircle size={18} />
+            </IconButton>
+          </Tooltip>
+        )}
         {getAuthToken() && (
           <Tooltip title="Terminar sessão">
             <IconButton

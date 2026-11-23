@@ -1,8 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Alert, Button, TextField } from '@mui/material';
+import { FileDown } from 'lucide-react';
 import DigitalCard from '../../components/DigitalCard';
 import ThemeSelector from '../../components/ThemeSelector';
-import { changeOwnPassword, getTeacherProfile, setAuthToken } from '../../services/api';
+import {
+  changeOwnPassword,
+  getTeacherPhoto,
+  getTeacherProfile,
+  recordTeacherIssue,
+  setAuthToken,
+} from '../../services/api';
 import { staffCardData } from '../../utils/cardData';
 import { loadCardInstitution } from '../../utils/reportHeader';
 import { toDisplayDate } from '../../utils/date';
@@ -15,6 +22,8 @@ const fullName = (staff) => [staff.firstName, staff.surname]
 export default function TeacherProfilePage({ theme, onThemeChange }) {
   const [staff, setStaff] = useState(null);
   const [institution, setInstitution] = useState({});
+  const [photo, setPhoto] = useState(null);
+  const [letterBusy, setLetterBusy] = useState(false);
   const [error, setError] = useState('');
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
@@ -53,6 +62,7 @@ export default function TeacherProfilePage({ theme, onThemeChange }) {
 
   useEffect(() => {
     loadCardInstitution().then(setInstitution).catch(() => setInstitution({}));
+    getTeacherPhoto().then(setPhoto).catch(() => setPhoto(null));
     getTeacherProfile()
       .then((profile) => setStaff(profile.staff))
       .catch(() => setError('Não foi possível carregar os seus dados.'));
@@ -86,7 +96,29 @@ export default function TeacherProfilePage({ theme, onThemeChange }) {
         <>
           <div className="cacoin-settings-card" style={{ marginBottom: 24 }}>
             <h2 style={{ marginTop: 0 }}>Cartão de funcionário</h2>
-            <DigitalCard card={staffCardData(staff, institution)} />
+            <DigitalCard
+              card={staffCardData(staff, institution, photo)}
+              onDownloaded={() => recordTeacherIssue('CARD')}
+            />
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>
+              <Button
+                variant="outlined"
+                startIcon={<FileDown size={16} />}
+                disabled={letterBusy}
+                onClick={async () => {
+                  setLetterBusy(true);
+                  try {
+                    const { exportStaffLetter } = await import('../../utils/staffLetter');
+                    await exportStaffLetter(staff);
+                    recordTeacherIssue('LETTER');
+                  } finally {
+                    setLetterBusy(false);
+                  }
+                }}
+              >
+                {letterBusy ? 'A gerar…' : 'Descarregar carta de boas-vindas (PDF)'}
+              </Button>
+            </div>
           </div>
           <div
             style={{

@@ -16,7 +16,7 @@ import {
   getInstitutionWebsite,
   getSystemSettings,
   getTeacherProfile,
-  syncInstitutionProfile,
+  pullInstitutionProfile,
 } from './services/api';
 import { setSystemYear } from './utils/systemDate';
 import { setPortalKind, setTeacherMode } from './utils/teacherMode';
@@ -69,9 +69,8 @@ const openApp = async () => {
   } catch {
     setSystemYear(null);
   }
-  // O administrador mantém no servidor uma cópia do cabeçalho/rodapé dos relatórios (para os
-  // PDFs dos portais); só envia se o servidor ainda não tiver nada.
-  if (getAuthTokenKind() === 'ADMIN') syncInstitutionProfile({ bootstrap: true });
+  // O servidor é a fonte do cabeçalho/rodapé dos relatórios: este navegador adopta-os antes de abrir.
+  await pullInstitutionProfile();
   render(<><App teacher={teacher} hr={hr} /><WelcomeDialog /></>);
 };
 

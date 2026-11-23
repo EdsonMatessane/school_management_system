@@ -559,32 +559,76 @@ export const saveInstitutionWebsite = (website) =>
 export const getInstitutionProfile = () =>
   api.get('/auth/institution').then((response) => response.data ?? {});
 
-/**
- * Envia ao servidor o perfil, o rodapé e o logótipo deste navegador (só o administrador).
- * Com `bootstrap`, só envia se o servidor ainda não tiver nada, para nunca apagar dados.
- */
-export const syncInstitutionProfile = async ({ bootstrap = false } = {}) => {
+const readLocalInstitution = () => {
+  const profile = getSchoolProfile();
+  return {
+    name: profile.institutionName ?? '',
+    slogan: profile.institutionSlogan ?? '',
+    address: profile.institutionAddress ?? '',
+    primaryPhone: profile.institutionPrimaryPhone ?? '',
+    email: profile.institutionEmail ?? '',
+    reportFooter: window.localStorage.getItem('cacoin.schoolReportFooter') ?? '',
+    logo: window.localStorage.getItem('cacoin.logo') ?? '',
+  };
+};
+
+/** Envia ao servidor o perfil, o rodapé e o logótipo deste navegador (guardados pelo administrador). */
+export const syncInstitutionProfile = async () => {
   try {
-    const profile = getSchoolProfile();
-    const local = {
-      name: profile.institutionName ?? '',
-      slogan: profile.institutionSlogan ?? '',
-      address: profile.institutionAddress ?? '',
-      primaryPhone: profile.institutionPrimaryPhone ?? '',
-      email: profile.institutionEmail ?? '',
-      reportFooter: window.localStorage.getItem('cacoin.schoolReportFooter') ?? '',
-      logo: window.localStorage.getItem('cacoin.logo') ?? '',
-    };
-    if (bootstrap) {
-      if (!Object.values(local).some(Boolean)) return;
-      const remote = await getInstitutionProfile();
-      if (remote.name || remote.logo || remote.reportFooter || remote.address) return;
-    }
-    await api.put('/settings/institution-profile', local);
+    await api.put('/settings/institution-profile', readLocalInstitution());
   } catch {
-    // a cópia do servidor só serve os PDFs dos portais; volta a tentar-se no próximo acesso
+    // não foi possível actualizar a cópia do servidor; o administrador pode guardar de novo
   }
 };
+
+/**
+ * O servidor é a fonte do cabeçalho e do rodapé dos relatórios: ao abrir o sistema, o
+ * navegador adopta o que o servidor tem (assim um computador novo já os mostra). Só se o
+ * servidor ainda não tiver nada é que ele recebe os dados deste navegador.
+ */
+export const pullInstitutionProfile = async () => {
+  try {
+    const remote = await getInstitutionProfile();
+    const hasData = ['name', 'slogan', 'address', 'primaryPhone', 'email', 'reportFooter', 'logo']
+      .some((field) => remote[field]);
+    if (!hasData) {
+      if (Object.values(readLocalInstitution()).some(Boolean) && getAuthTokenKind() === 'ADMIN') {
+        await syncInstitutionProfile();
+      }
+      return;
+    }
+    window.localStorage.setItem(schoolProfileKey(), JSON.stringify({
+      ...getSchoolProfile(),
+      institutionName: remote.name ?? '',
+      institutionSlogan: remote.slogan ?? '',
+      institutionAddress: remote.address ?? '',
+      institutionPrimaryPhone: remote.primaryPhone ?? '',
+      institutionEmail: remote.email ?? '',
+    }));
+    const store = (key, value) => (value
+      ? window.localStorage.setItem(key, value)
+      : window.localStorage.removeItem(key));
+    store('cacoin.schoolReportFooter', remote.reportFooter);
+    store('cacoin.logo', remote.logo);
+  } catch {
+    // sem ligação ao servidor: mantêm-se os dados guardados neste navegador
+  }
+};
+
+export const getTeacherPhoto = () => api.get('/teacher/photo').then((response) => response.data?.photo ?? null);
+export const saveStudentCardPhoto = (studentId, photo) =>
+  api.put(`/student-cards/${studentId}/photo`, { photo });
+export const removeStudentCardPhoto = (studentId) => api.delete(`/student-cards/${studentId}/photo`);
+/** Regista a exportação dos cartões destes estudantes; nunca bloqueia a exportação. */
+export const recordStudentCardsIssued = (ids) =>
+  api.post('/student-cards/issued', { ids }).catch(() => {});
+/** Regista a emissão do cartão ou da carta (CARD ou LETTER); nunca bloqueia o descarregamento. */
+export const recordPortalIssue = (document) =>
+  api.post('/portal/documents/issued', { document }).catch(() => {});
+export const recordTeacherIssue = (document) =>
+  api.post('/teacher/documents/issued', { document }).catch(() => {});
+export const getStudentCards = (ids) =>
+  api.post('/student-cards', { ids }).then((response) => response.data);
 
 export const updateSchoolProfile = async (profile) => {
   let saved = profile;

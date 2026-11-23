@@ -7,6 +7,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
+import mz.cacoin.photos.PersonPhotoService;
+import mz.cacoin.settings.SystemSettings;
+import mz.cacoin.settings.SystemSettingsRepository;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
@@ -83,6 +86,8 @@ public class PortalService {
   private final StudentRepository students;
   private final StudentEnrollmentRepository enrollments;
   private final StudentFeeService fees;
+  private final PersonPhotoService photos;
+  private final SystemSettingsRepository systemSettings;
   private final StudentExamGradeRepository examGrades;
   private final StudentTestGradeRepository testGrades;
   private final AssessmentGradeRepository assessmentGrades;
@@ -159,7 +164,36 @@ public class PortalService {
         duration,
         end,
         profile.enrollmentStatus(),
-        student.isActive());
+        student.isActive(),
+        academicYearLabel(profile.enrollmentDate()),
+        photos.findStudent(studentId).orElse(null));
+  }
+
+  /** Dados de cartão de vários estudantes (impressão em lote); ignora ids que não existem. */
+  @Transactional(readOnly = true)
+  public List<PortalDtos.Documents> documentsFor(List<Long> studentIds) {
+    List<PortalDtos.Documents> result = new java.util.ArrayList<>();
+    for (Long id : studentIds) {
+      if (id != null && students.existsById(id)) {
+        result.add(documents(id));
+      }
+    }
+    return result;
+  }
+
+  /** Ano académico da data, segundo o mês de início e de fim definidos no sistema. */
+  private String academicYearLabel(LocalDate date) {
+    if (date == null) {
+      return null;
+    }
+    SystemSettings settings = systemSettings.findById(1L).orElseGet(SystemSettings::new);
+    int start = settings.getAcademicYearStartMonth();
+    int end = settings.getAcademicYearEndMonth() == null ? 12 : settings.getAcademicYearEndMonth();
+    if (start <= end) {
+      return String.valueOf(date.getYear());
+    }
+    int firstYear = date.getMonthValue() >= start ? date.getYear() : date.getYear() - 1;
+    return firstYear + "/" + (firstYear + 1);
   }
 
   @Transactional

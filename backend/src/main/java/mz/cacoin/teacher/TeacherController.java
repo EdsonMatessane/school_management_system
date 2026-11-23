@@ -1,5 +1,8 @@
 package mz.cacoin.teacher;
 
+import mz.cacoin.photos.DocumentIssueService;
+import mz.cacoin.photos.PersonPhotoService;
+import mz.cacoin.portal.PortalDtos;
 import mz.cacoin.users.UserAccountRepository;
 import mz.cacoin.users.UserAccount;
 import mz.cacoin.audit.AuditContext;
@@ -8,7 +11,10 @@ import mz.cacoin.staff.StaffResponse;
 import mz.cacoin.staff.StaffService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -20,12 +26,50 @@ public class TeacherController {
   private final StaffService staff;
   private final UserAccountRepository accounts;
   private final TeacherNotificationService notifications;
+  private final PersonPhotoService photos;
+  private final DocumentIssueService issues;
 
   public TeacherController(
-      StaffService staff, UserAccountRepository accounts, TeacherNotificationService notifications) {
+      StaffService staff,
+      UserAccountRepository accounts,
+      TeacherNotificationService notifications,
+      PersonPhotoService photos,
+      DocumentIssueService issues) {
     this.staff = staff;
     this.accounts = accounts;
     this.notifications = notifications;
+    this.photos = photos;
+    this.issues = issues;
+  }
+
+  public record PhotoResponse(String photo) {}
+
+  /** Fotografia do cartão do funcionário autenticado; só leitura (quem a define é a secretaria). */
+  @GetMapping("/photo")
+  public PhotoResponse photo() {
+    return new PhotoResponse(photos.findStaff(currentStaffId()).orElse(null));
+  }
+
+  /** Regista que o funcionário descarregou o cartão ou a carta. */
+  @PostMapping("/documents/issued")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void issued(@RequestBody PortalDtos.IssuedRequest request) {
+    issues.recordStaff(currentStaffId(), request.document());
+  }
+
+  private Long currentStaffId() {
+    TeacherContext.Scope scope = TeacherContext.current();
+    if (scope != null) {
+      return scope.staffId();
+    }
+    AuditContext.Actor actor = AuditContext.current();
+    UserAccount account = actor == null ? null : accounts.findById(actor.accountId()).orElse(null);
+    if (account == null || !UserAccount.STAFF.equals(account.getKind())
+        || account.getStaffId() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "A conta não é de um funcionário com portal");
+    }
+    return account.getStaffId();
   }
 
   @GetMapping("/notifications")

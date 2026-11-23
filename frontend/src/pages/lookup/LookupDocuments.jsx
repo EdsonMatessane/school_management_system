@@ -4,5 +4,5 @@ import DocumentsPanel from '../portal/DocumentsPanel';
 
 export default function LookupDocuments({ code }) {
   const loader = useCallback(() => getLookupDocuments(code), [code]);
-  return <DocumentsPanel loader={loader} />;
+  return <DocumentsPanel loader={loader} readOnly />;
 }

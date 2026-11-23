@@ -24,7 +24,7 @@ const columns = [
   { key: 'select', label: 'Selecionar', align: 'right' },
 ];
 
-function FeePickerBody({ items, selectedId, itemLabel, onClose, onConfirm }) {
+function FeePickerBody({ items, selectedId, itemLabel, article, icon: Icon, onClose, onConfirm }) {
   const [pendingId, setPendingId] = useState(selectedId ?? null);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -43,11 +43,11 @@ function FeePickerBody({ items, selectedId, itemLabel, onClose, onConfirm }) {
           <SearchField value={searchTerm} onChange={setSearchTerm} />
         </div>
         <StandardTable
-          ariaLabel={`Lista de ${itemLabel}s`}
+          ariaLabel="Lista de opções"
           columns={columns}
           emptyMessage={searchTerm.trim()
-            ? `Nenhuma ${itemLabel} corresponde à pesquisa.`
-            : `Não existem ${itemLabel}s ativas.`}
+            ? 'Nenhuma opção corresponde à pesquisa.'
+            : 'Não existem opções ativas para escolher.'}
           rows={rows}
           renderRow={(fee, rowNumber) => (
             <TableRow
@@ -61,7 +61,7 @@ function FeePickerBody({ items, selectedId, itemLabel, onClose, onConfirm }) {
               <TableCell>{rowNumber}</TableCell>
               <TableCell>
                 <span className="cacoin-level-name">
-                  <CalendarDays size={18} aria-hidden="true" />
+                  <Icon size={18} aria-hidden="true" />
                   {fee.type}
                 </span>
               </TableCell>
@@ -81,11 +81,11 @@ function FeePickerBody({ items, selectedId, itemLabel, onClose, onConfirm }) {
         <Alert severity={pending ? 'success' : 'info'} icon={false} sx={{ mt: 2 }}>
           {pending ? (
             <>
-              Está a selecionar a {itemLabel} <strong>{pending.type}</strong>
+              Está a selecionar {article} {itemLabel} <strong>{pending.type}</strong>
               {' '}— <Money value={pending.amount} />
               {pending.description ? ` (${pending.description})` : ''}.
             </>
-          ) : `Clique numa linha para selecionar a ${itemLabel}.`}
+          ) : `Clique numa linha para selecionar ${article} ${itemLabel}.`}
         </Alert>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -108,7 +108,8 @@ function FeePickerBody({ items, selectedId, itemLabel, onClose, onConfirm }) {
  * ser selecionada. Só altera o valor ao confirmar (ou com duplo clique na linha).
  */
 export default function FeePickerDialog({
-  open, title, itemLabel = 'mensalidade', items, selectedId, onClose, onConfirm,
+  open, title, itemLabel = 'mensalidade', article = 'a', icon = CalendarDays, items, selectedId,
+  onClose, onConfirm,
 }) {
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
@@ -117,6 +118,8 @@ export default function FeePickerDialog({
         items={items}
         selectedId={selectedId}
         itemLabel={itemLabel}
+        article={article}
+        icon={icon}
         onClose={onClose}
         onConfirm={onConfirm}
       />

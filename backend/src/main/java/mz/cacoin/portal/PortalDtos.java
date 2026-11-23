@@ -158,5 +158,12 @@ public final class PortalDtos {
       Integer durationMonths,
       LocalDate endDate,
       String enrollmentStatus,
-      boolean active) {}
+      boolean active,
+      String academicYear,
+      String photo) {}
+
+  public record PhotoRequest(String photo) {}
+
+  /** `document`: CARD (cartão) ou LETTER (carta de boas-vindas). */
+  public record IssuedRequest(String document) {}
 }

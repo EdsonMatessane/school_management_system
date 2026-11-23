@@ -21,6 +21,7 @@ export const staffManagementPages = {
 export const studentSectionLabels = {
   'student-enroll': 'Inscrever',
   'student-manage': 'Gerir',
+  'student-cards': 'Gestão de Cartões',
   'student-history': 'Histórico',
   'student-enrollment-pending': 'Inscrição: Pendente',
   'student-enrollment-paid': 'Inscrição: Pago',

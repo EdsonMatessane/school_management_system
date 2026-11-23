@@ -1,37 +1,16 @@
 import { syncInstitutionProfile } from './services/api';
 import { isHrProfileSection } from './components/teacherNav';
 import { getPortalKind, setPersonalScope, setTeacherMode } from './utils/teacherMode';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import Layout from './components/Layout';
-import CoursesManagement from './pages/courses/courses/CoursesManagement';
-import CategoriesManagement from './pages/courses/categories/CategoriesManagement';
-import EnrollmentFeesManagement from './pages/courses/enrollmentfees/EnrollmentFeesManagement';
-import LevelsManagement from './pages/courses/levels/LevelsManagement';
-import ManualFeesManagement from './pages/courses/manualfees/ManualFeesManagement';
-import ModalitiesManagement from './pages/courses/modalities/ModalitiesManagement';
-import MonthlyFeesManagement from './pages/courses/monthlyfees/MonthlyFeesManagement';
-import DisciplinesManagement from './pages/modules/disciplines/DisciplinesManagement';
-import SettingsManagement from './pages/settings/SettingsManagement';
-import PaymentMethodsManagement from './pages/settings/payments/PaymentMethodsManagement';
-import PaymentPeriodManagement from './pages/settings/payments/PaymentPeriodManagement';
-import SchoolManagement from './pages/settings/myschool/SchoolManagement';
-import SchoolCustomization from './pages/settings/myschool/SchoolCustomization';
-import SchoolReportManagement from './pages/settings/myschool/SchoolReportManagement';
-import TasksManagement from './pages/tasks/TasksManagement';
-import TaskDashboard from './pages/tasks/TaskDashboard';
-import ForwardedTasksPage from './pages/staffportal/ForwardedTasksPage';
 import StaffShell from './pages/staffportal/StaffShell';
-import TeacherCoursesPage from './pages/teacher/TeacherCoursesPage';
-import TeacherDocumentsPage from './pages/teacher/TeacherDocumentsPage';
-import TeacherNotificationsPage from './pages/teacher/TeacherNotificationsPage';
-import TeacherProfilePage from './pages/teacher/TeacherProfilePage';
-import TeacherStudentsPage from './pages/teacher/TeacherStudentsPage';
 import './styles.css';
 import {
   StudentLookUpSearch,
   ModulesManagement,
   StudentEnrollmentPage,
   StudentManagementPage,
+  StudentCardsPage,
   StudentFeesManagement,
   StudentEnrollmentPayments,
   StudentTestCreatePage,
@@ -130,6 +109,30 @@ import {
   schoolSectionLabels,
 } from './appSections';
 
+// Páginas carregadas só quando se abrem, para o ficheiro inicial ser mais leve.
+const CoursesManagement = lazy(() => import('./pages/courses/courses/CoursesManagement'));
+const CategoriesManagement = lazy(() => import('./pages/courses/categories/CategoriesManagement'));
+const EnrollmentFeesManagement = lazy(() => import('./pages/courses/enrollmentfees/EnrollmentFeesManagement'));
+const LevelsManagement = lazy(() => import('./pages/courses/levels/LevelsManagement'));
+const ManualFeesManagement = lazy(() => import('./pages/courses/manualfees/ManualFeesManagement'));
+const ModalitiesManagement = lazy(() => import('./pages/courses/modalities/ModalitiesManagement'));
+const MonthlyFeesManagement = lazy(() => import('./pages/courses/monthlyfees/MonthlyFeesManagement'));
+const DisciplinesManagement = lazy(() => import('./pages/modules/disciplines/DisciplinesManagement'));
+const SettingsManagement = lazy(() => import('./pages/settings/SettingsManagement'));
+const PaymentMethodsManagement = lazy(() => import('./pages/settings/payments/PaymentMethodsManagement'));
+const PaymentPeriodManagement = lazy(() => import('./pages/settings/payments/PaymentPeriodManagement'));
+const SchoolManagement = lazy(() => import('./pages/settings/myschool/SchoolManagement'));
+const SchoolCustomization = lazy(() => import('./pages/settings/myschool/SchoolCustomization'));
+const SchoolReportManagement = lazy(() => import('./pages/settings/myschool/SchoolReportManagement'));
+const TasksManagement = lazy(() => import('./pages/tasks/TasksManagement'));
+const TaskDashboard = lazy(() => import('./pages/tasks/TaskDashboard'));
+const ForwardedTasksPage = lazy(() => import('./pages/staffportal/ForwardedTasksPage'));
+const TeacherCoursesPage = lazy(() => import('./pages/teacher/TeacherCoursesPage'));
+const TeacherDocumentsPage = lazy(() => import('./pages/teacher/TeacherDocumentsPage'));
+const TeacherNotificationsPage = lazy(() => import('./pages/teacher/TeacherNotificationsPage'));
+const TeacherProfilePage = lazy(() => import('./pages/teacher/TeacherProfilePage'));
+const TeacherStudentsPage = lazy(() => import('./pages/teacher/TeacherStudentsPage'));
+
 export default function App({ teacher = false, hr = false }) {
   const [activeSection, setActiveSection] = useState(teacher || hr ? 'teacher-info' : 'dashboard');
   // RH: as páginas de «Meu Perfil» são pessoais; todas as outras são o sistema geral.
@@ -226,6 +229,7 @@ export default function App({ teacher = false, hr = false }) {
       teacher={teacher}
       hr={hr}
     >
+      <Suspense fallback={<p>A carregar…</p>}>
       {(teacher || hr) && teacherPages[activeSection] ? teacherPages[activeSection] : activeSection === 'settings' ||
       activeSection === 'settings-form' ||
       activeSection === 'staff-form' ? (
@@ -532,6 +536,10 @@ export default function App({ teacher = false, hr = false }) {
               setActiveSection(returnSection);
             }}
           />
+        </Suspense>
+      ) : activeSection === 'student-cards' ? (
+        <Suspense fallback={<p>A carregar cartões…</p>}>
+          <StudentCardsPage />
         </Suspense>
       ) : activeSection === 'student-manage' ||
         activeSection === 'student-history' ? (
@@ -947,6 +955,7 @@ export default function App({ teacher = false, hr = false }) {
       ) : (
         <CoursesManagement />
       )}
+      </Suspense>
     </Shell>
   );
 }

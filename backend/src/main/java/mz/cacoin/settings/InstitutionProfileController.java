@@ -1,8 +1,12 @@
 package mz.cacoin.settings;
 
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -18,8 +22,15 @@ public class InstitutionProfileController {
    * rodapé e logótipo). Os portais de estudantes, professores e funcionários usam-na nos PDFs.
    */
   @GetMapping("/api/auth/institution")
-  public InstitutionProfileService.Profile get() {
-    return service.get();
+  public ResponseEntity<InstitutionProfileService.Profile> get(
+      @RequestHeader(value = "If-None-Match", required = false) String ifNoneMatch) {
+    InstitutionProfileService.Profile profile = service.get();
+    // O logótipo é pesado: com ETag o navegador só volta a descarregá-lo se algo mudou.
+    String etag = "\"" + Integer.toHexString(profile.hashCode()) + "\"";
+    if (etag.equals(ifNoneMatch)) {
+      return ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(etag).build();
+    }
+    return ResponseEntity.ok().eTag(etag).cacheControl(CacheControl.noCache()).body(profile);
   }
 
   /** Chamado pelo navegador do administrador sempre que muda o perfil, o logótipo ou o rodapé. */

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Drawer, IconButton, Menu, MenuItem } from '@mui/material';
 import { Bell, CalendarDays, LogOut, Menu as MenuIcon } from 'lucide-react';
 import logo from '../../assets/logo.png';
+import { openWelcomeGuide } from '../../components/WelcomeDialog';
 import {
   teacherAreaOf,
   teacherFirstSection,
@@ -122,6 +123,9 @@ export default function StaffShell({ activeSection, onSectionChange, children })
             <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>
               <MenuItem onClick={() => { setAnchor(null); onSectionChange('teacher-info'); }}>
                 Informação
+              </MenuItem>
+              <MenuItem onClick={() => { setAnchor(null); openWelcomeGuide(); }}>
+                Como usar o sistema
               </MenuItem>
               <MenuItem onClick={signOut}>Terminar sessão</MenuItem>
             </Menu>

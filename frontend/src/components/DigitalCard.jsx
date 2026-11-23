@@ -23,7 +23,7 @@ function Qr({ text }) {
  * Cartão digital (estudante ou funcionário): clique para virar. O PDF tem o tamanho de um
  * cartão (85,6 × 54 mm), frente e verso, pronto a imprimir.
  */
-export default function DigitalCard({ card, showDownload = true }) {
+export default function DigitalCard({ card, showDownload = true, onDownloaded }) {
   const [flipped, setFlipped] = useState(false);
   const [error, setError] = useState('');
   const style = {
@@ -37,6 +37,7 @@ export default function DigitalCard({ card, showDownload = true }) {
       // jsPDF só se carrega quando se descarrega (o resto do sistema também o carrega a pedido)
       const { exportCardToPdf } = await import('../utils/cardPdf');
       exportCardToPdf(card);
+      if (onDownloaded) onDownloaded();
     } catch (downloadError) {
       setError(downloadError.message || 'Não foi possível gerar o cartão.');
     }
@@ -65,7 +66,11 @@ export default function DigitalCard({ card, showDownload = true }) {
             </div>
             <div className="dcard-body">
               <div className="dcard-photo">
-                <div className="dcard-avatar">{card.initials || '?'}</div>
+                <div className="dcard-avatar">
+                  {card.photo
+                    ? <img className="dcard-photo-img" src={card.photo} alt="" />
+                    : (card.initials || '?')}
+                </div>
                 <span className="dcard-status">{card.status}</span>
               </div>
               <div className="dcard-info">

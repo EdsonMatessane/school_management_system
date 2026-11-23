@@ -2,6 +2,7 @@ package mz.cacoin.portal;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import mz.cacoin.photos.DocumentIssueService;
 import mz.cacoin.requests.StudentRequestDtos;
 import mz.cacoin.requests.StudentRequestService;
 import mz.cacoin.users.AuthFilter;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -27,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class PortalController {
   private final PortalService portal;
+  private final DocumentIssueService issues;
 
   @GetMapping("/overview")
   public PortalDtos.Overview overview(@RequestAttribute(AuthFilter.PORTAL_STUDENT) Long studentId) {
@@ -38,6 +41,15 @@ public class PortalController {
   public PortalDtos.Documents documents(
       @RequestAttribute(AuthFilter.PORTAL_STUDENT) Long studentId) {
     return portal.documents(studentId);
+  }
+
+  /** Regista que o estudante descarregou o cartão ou a carta. */
+  @PostMapping("/documents/issued")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void issued(
+      @RequestAttribute(AuthFilter.PORTAL_STUDENT) Long studentId,
+      @RequestBody PortalDtos.IssuedRequest request) {
+    issues.recordStudent(studentId, request.document());
   }
 
   @GetMapping("/profile")

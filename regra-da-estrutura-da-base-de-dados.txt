@@ -169,6 +169,10 @@ welcome_pending e welcome_seen_at (so datas/estado da conta). institution_profil
 contacto, email, rodape e logotipo) guarda a copia do cabecalho/rodape dos relatorios para os PDFs dos portais;
 GET /api/auth/institution e publico e o PUT /api/settings/institution-profile e do administrador. Os dados do cartao
 e da carta (/api/portal/documents e /api/lookup/{code}/documents) sao lidos de students e student_enrollments pelo ID.
+Fotografia do cartao: tabela propria person_photos (student_id ou staff_id, nunca os dois; data URL JPEG/PNG/WebP
+ate 300 KB), fora de students e staff_members para nao pesar nas listas; apaga-se junto com a pessoa. Cada cartao ou
+carta descarregado regista uma linha em document_issues (student_id ou staff_id, CARD ou LETTER, issued_at), sem dados
+pessoais alem do ID; a auditoria regista quem e quando. O GET /api/auth/institution usa ETag (If-None-Match).
 
 Corrigido: tasks, task_comments - tinham nomes em texto (assignee, created_by, author). Passaram
 a assignee_id, created_by_id e author_id (ID em staff_members).

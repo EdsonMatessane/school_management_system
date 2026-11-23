@@ -7,6 +7,7 @@ import {
   CalendarDays,
   ClipboardList,
   CreditCard,
+  HelpCircle,
   FileText,
   GraduationCap,
   LayoutDashboard,
@@ -18,7 +19,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import logo from '../../assets/logo.png';
-import WelcomeDialog from '../../components/WelcomeDialog';
+import WelcomeDialog, { openWelcomeGuide } from '../../components/WelcomeDialog';
 import { systemDate } from '../../utils/systemDate';
 import { getPortalNotifications, getPortalProfile, setAuthToken } from '../../services/api';
 import PortalAcademics from './PortalAcademics';
@@ -121,6 +122,26 @@ export default function PortalApp() {
     setTheme(value);
     savePortalTheme(profile?.code, value);
   };
+
+  const documentsKey = `cacoin.portal.documentsSeen.${profile?.code ?? ''}`;
+  const [documentsSeen, setDocumentsSeen] = useState(true);
+  useEffect(() => {
+    if (!profile?.code) return;
+    try {
+      setDocumentsSeen(window.localStorage.getItem(documentsKey) === '1');
+    } catch {
+      setDocumentsSeen(true);
+    }
+  }, [profile?.code, documentsKey]);
+  useEffect(() => {
+    if (section !== 'documents' || documentsSeen) return;
+    setDocumentsSeen(true);
+    try {
+      window.localStorage.setItem(documentsKey, '1');
+    } catch {
+      // sem armazenamento: o aviso «Novo» volta a aparecer no próximo acesso
+    }
+  }, [section, documentsSeen, documentsKey]);
 
   const unread = notificationIds.filter((id) => !seen.has(id)).length;
   const badgeText = unread > 9 ? '9+' : String(unread);
@@ -238,11 +259,22 @@ export default function PortalApp() {
                     {id === 'notifications' && unread > 0 && (
                       <span className="portal-badge">{badgeText}</span>
                     )}
+                    {id === 'documents' && !documentsSeen && (
+                      <span className="portal-badge">Novo</span>
+                    )}
                   </button>
                 ))}
               </div>
             ))}
             <hr className="portal-drawer-divider" />
+            <button
+              type="button"
+              className="portal-drawer-item"
+              onClick={() => { setNavigationOpen(false); openWelcomeGuide(); }}
+            >
+              <HelpCircle size={19} aria-hidden="true" />
+              <span>Como usar o sistema</span>
+            </button>
             <button type="button" className="portal-drawer-item" onClick={signOut}>
               <LogOut size={19} aria-hidden="true" />
               <span>Sair</span>
@@ -268,12 +300,25 @@ export default function PortalApp() {
                   {id === 'notifications' && unread > 0 && (
                     <span className="portal-nav-badge">{badgeText}</span>
                   )}
+                  {id === 'documents' && !documentsSeen && (
+                    <span className="portal-nav-badge">Novo</span>
+                  )}
                 </button>
               ))}
             </div>
           ))}
           <div className="portal-nav-group portal-nav-exit">
             <hr className="portal-nav-divider" />
+            <button
+              type="button"
+              className="portal-nav-item"
+              onClick={openWelcomeGuide}
+              aria-label="Como usar o sistema"
+              data-label="Como usar o sistema"
+            >
+              <HelpCircle size={19} aria-hidden="true" />
+              <span>Como usar o sistema</span>
+            </button>
             <button type="button" className="portal-nav-item" onClick={signOut} aria-label="Sair" data-label="Sair">
               <LogOut size={19} aria-hidden="true" />
               <span>Sair</span>

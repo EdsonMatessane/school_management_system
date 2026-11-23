@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import mz.cacoin.photos.PersonPhotoService;
 import mz.cacoin.common.TextNormalizer;
 import mz.cacoin.courses.Course;
 import mz.cacoin.assessments.AssessmentSheetTeacherRepository;
@@ -48,6 +49,7 @@ public class StaffService {
       Set.of(".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png");
 
   private final StaffRepository staffMembers;
+  private final PersonPhotoService photos;
   private final StaffCourseAssignmentRepository staffCourseAssignments;
   private final CourseRepository courses;
   private final JdbcTemplate jdbcTemplate;
@@ -129,6 +131,7 @@ public class StaffService {
     deleteStoredDocument(member.getCertificateStorageName());
     deleteStoredDocument(member.getCvStorageName());
     staffDocuments.deleteAllByStaffId(member.getId());
+    photos.removeStaff(member.getId());
     staffMembers.delete(member);
   }
 

@@ -9,6 +9,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import mz.cacoin.photos.PersonPhotoService;
 import mz.cacoin.common.TextNormalizer;
 import mz.cacoin.config.MozambiqueLocations;
 import mz.cacoin.config.MozambiqueLocations.DistrictData;
@@ -39,6 +40,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RequiredArgsConstructor
 public class StudentService {
   private final StudentRepository students;
+  private final PersonPhotoService photos;
   private final StudentEnrollmentRepository enrollments;
   private final CourseRepository courses;
   private final SystemSettingsRepository settings;
@@ -227,6 +229,7 @@ public class StudentService {
           HttpStatus.CONFLICT, "Não é possível apagar o estudante porque tem pedidos registados");
     }
     enrollments.deleteAllByStudentId(id);
+    photos.removeStudent(id);
     students.delete(student);
   }
 

@@ -30,6 +30,7 @@ const staffKinds = {
 };
 
 const academicYear = (documents) => {
+  if (documents.academicYear) return documents.academicYear;
   const year = (documents.enrollmentDate ?? '').slice(0, 4);
   return year || String(new Date().getFullYear());
 };
@@ -56,13 +57,15 @@ export function studentCardData(documents, institution = {}) {
     ],
     footerLeft: { label: 'Ano Académico', value: academicYear(documents) },
     footerRight: { label: 'Válido Até', value: end },
-    qrText: `${documents.code}|${documents.name}|${institution.name || ''}`,
+    photo: documents.photo || '',
+    // O QR abre a Pesquisa de estudante (exige sessão de funcionário), a confirmar se o cartão é válido.
+    qrText: `${window.location.origin}/?lookup=${encodeURIComponent(documents.code)}`,
     fileName: `cartao-estudante-${documents.code}`,
     theme: cardTheme,
   };
 }
 
-export function staffCardData(staff, institution = {}) {
+export function staffCardData(staff, institution = {}, photo = '') {
   const type = staffKinds[staff.staffType] ?? staffKinds.other;
   const name = [staff.firstName, staff.surname].filter(Boolean).join(' ');
   const code = String(staff.staffCode ?? '').toUpperCase();
@@ -84,6 +87,7 @@ export function staffCardData(staff, institution = {}) {
     ],
     footerLeft: { label: 'Tipo', value: type.label },
     footerRight: { label: 'Desde', value: staff.createdAt ? String(staff.createdAt).slice(0, 4) : '—' },
+    photo: photo || '',
     qrText: `${code}|${name}|${institution.name || ''}`,
     fileName: `cartao-funcionario-${code}`,
     theme: cardTheme,

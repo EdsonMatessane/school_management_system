@@ -78,12 +78,13 @@ public class AuthService {
   @Transactional(readOnly = true)
   public UserDtos.WelcomeResponse welcome(String token) {
     UserAccount account = accountOf(token);
-    String audience = audience(account);
-    if (!Boolean.TRUE.equals(account.getWelcomePending())) {
-      return new UserDtos.WelcomeResponse(false, audience, null, account.getCode(), null);
-    }
+    // Os dados vão sempre, para a nota poder voltar a abrir-se em «Como usar o sistema».
     return new UserDtos.WelcomeResponse(
-        true, audience, displayName(account), account.getCode(), institution.get().name());
+        Boolean.TRUE.equals(account.getWelcomePending()),
+        audience(account),
+        displayName(account),
+        account.getCode(),
+        institution.get().name());
   }
 
   @Transactional

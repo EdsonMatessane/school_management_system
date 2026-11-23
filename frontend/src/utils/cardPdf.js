@@ -58,10 +58,23 @@ function front(doc, card) {
   doc.setFillColor(...accent);
   doc.setDrawColor(...accent);
   doc.setLineWidth(0.4);
-  doc.roundedRect(4, 17, 19, 24, 1.2, 1.2, 'FD');
-  doc.setFontSize(15);
-  doc.setTextColor(255, 255, 255);
-  doc.text(card.initials || '?', 13.5, 31, { align: 'center' });
+  let photoDrawn = false;
+  if (card.photo) {
+    try {
+      doc.addImage(card.photo, imageType(card.photo), 4, 17, 19, 24, undefined, 'FAST');
+      doc.setFillColor(0, 0, 0);
+      doc.rect(4, 17, 19, 24, 'S');
+      photoDrawn = true;
+    } catch {
+      photoDrawn = false;
+    }
+  }
+  if (!photoDrawn) {
+    doc.roundedRect(4, 17, 19, 24, 1.2, 1.2, 'FD');
+    doc.setFontSize(15);
+    doc.setTextColor(255, 255, 255);
+    doc.text(card.initials || '?', 13.5, 31, { align: 'center' });
+  }
   doc.setFontSize(3.8);
   doc.setTextColor(...ink);
   doc.text(card.status, 13.5, 44, { align: 'center' });
@@ -179,6 +192,62 @@ function back(doc, card) {
   doc.text('EMISSÃO OFICIAL', W - 4, 50.5, { align: 'right' });
   doc.setDrawColor(203, 213, 225);
   doc.rect(0.1, 0.1, W - 0.2, H - 0.2);
+}
+
+// Desenha com as coordenadas do cartão (0 a 85,6 × 0 a 54) deslocadas para uma posição da folha.
+function offsetDoc(doc, ox, oy) {
+  const moved = {
+    rect: (x, y, ...rest) => doc.rect(x + ox, y + oy, ...rest),
+    roundedRect: (x, y, ...rest) => doc.roundedRect(x + ox, y + oy, ...rest),
+    line: (x1, y1, x2, y2) => doc.line(x1 + ox, y1 + oy, x2 + ox, y2 + oy),
+    text: (value, x, y, ...rest) => doc.text(value, x + ox, y + oy, ...rest),
+    addImage: (image, type, x, y, ...rest) => doc.addImage(image, type, x + ox, y + oy, ...rest),
+  };
+  return new Proxy(doc, {
+    get: (target, property) => {
+      if (moved[property]) return moved[property];
+      const value = target[property];
+      return typeof value === 'function' ? value.bind(target) : value;
+    },
+  });
+}
+
+/**
+ * Folha A4 com 10 cartões (2 × 5) para imprimir em lote: uma página de frentes e, a seguir,
+ * a página dos versos com as colunas trocadas, para a impressão frente e verso (virar pelo
+ * lado maior) ficar alinhada.
+ */
+export function exportCardsSheet(cards, fileName = 'cartoes-estudantes') {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+  doc.setProperties({ title: fileName });
+  const gap = 6;
+  const left = (210 - W * 2 - gap) / 2;
+  const columns = [left, left + W + gap];
+  const rowStep = H + 3;
+  const top = (297 - (rowStep * 5 - 3)) / 2;
+  for (let start = 0; start < cards.length; start += 10) {
+    const chunk = cards.slice(start, start + 10);
+    if (start > 0) doc.addPage('a4', 'portrait');
+    chunk.forEach((card, index) => {
+      front(offsetDoc(doc, columns[index % 2], top + Math.floor(index / 2) * rowStep), card);
+    });
+    doc.addPage('a4', 'portrait');
+    chunk.forEach((card, index) => {
+      back(offsetDoc(doc, columns[1 - (index % 2)], top + Math.floor(index / 2) * rowStep), card);
+    });
+  }
+  downloadFile(doc.output('arraybuffer'), `${fileName}.pdf`, 'application/pdf');
+}
+
+/** Um só estudante: uma folha A5 com a frente em cima e o verso por baixo, centrados. */
+export function exportCardA5(card) {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5', compress: true });
+  doc.setProperties({ title: card.fileName });
+  const x = (148 - W) / 2;
+  const top = (210 - (H * 2 + 12)) / 2;
+  front(offsetDoc(doc, x, top), card);
+  back(offsetDoc(doc, x, top + H + 12), card);
+  downloadFile(doc.output('arraybuffer'), `${card.fileName}-A5.pdf`, 'application/pdf');
 }
 
 /** Cartão em tamanho CR80 (85,6 × 54 mm): frente na página 1 e verso na página 2. */
